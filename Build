@@ -1,0 +1,15 @@
+#!/bin/bash
+
+sudo rm -r out
+
+if [[ ! -d gcc ]]; then
+git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b marshmallow-release gcc
+fi
+mkdir -p out
+export CROSS_COMPILE=${PWD}/gcc/bin/aarch64-linux-android-
+export USE_CCACHE=1
+export ARCH=arm64
+export SUBARCH=arm64
+export TARGET=out
+make O=$TARGET ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE nikel_defconfig | tee -a Defconfig.log
+make O=$TARGET ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE -j8 | tee -a Kernel.log

@@ -1193,15 +1193,15 @@ static void lcm_set_util_funcs(const LCM_UTIL_FUNCS *util)
 int read_boardid(void)
 {
 	char *result;
-
+	int id = 0;
 	result = strstr(saved_command_line, "BoardID=");
 
 	if (result) 
 	{
-		result = result[8] - '0';
-		return ((result > 9) ? 0 : result);
-    }
-    return result;
+		id = result[8] - '0';
+		return ((id > 9) ? 0 : id);
+    	}
+    return id;
 }
 
 static void lcm_get_params(LCM_PARAMS *params)
@@ -1299,7 +1299,7 @@ static void tps65132_enable(void)
 
 static void lcm_init(void)
 {
-	tps65132_enable(1);
+	tps65132_enable();
 	MDELAY(10);
 	mt_set_gpio_mode(GPIO_LCD_RESET_PIN, GPIO_MODE_00);
 	mt_set_gpio_dir(GPIO_LCD_RESET_PIN, GPIO_DIR_OUT);
@@ -1354,7 +1354,7 @@ static void lcm_resume(void)
 	}
   
 	printk("lcm_resume, lcm_initialization_count=%d, backlight_array_num=%d\n", lcm_initialization_count, backlight_array_num);
-	tps65132_enable(1);
+	tps65132_enable();
   
 	MDELAY(15);
 	mt_set_gpio_mode(GPIO_LCD_RESET_PIN, GPIO_MODE_00);

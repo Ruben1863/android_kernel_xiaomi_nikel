@@ -25,25 +25,24 @@
 //  Local Constants
 // ---------------------------------------------------------------------------
 
-#define FRAME_WIDTH                                         (1080)
-#define FRAME_HEIGHT                                        (1920)
+#define FRAME_WIDTH					(1080)
+#define FRAME_HEIGHT					(1920)
 
-#define REGFLAG_DELAY             							(0XFC)
-#define REGFLAG_END_OF_TABLE      							(0xFF)
+#define REGFLAG_DELAY             			(0XFC)
+#define REGFLAG_END_OF_TABLE      			(0xFF)
 
-#define LCM_ID												(0x32)
+#define LCM_ID						(0x32)
 
+#define GPIO50                              		50
+#define GPIO_LCD_BL_EN_PIN				(GPIO50 | 0x80000000)
 
-#define GPIO50                              50
-#define GPIO_LCD_BL_EN_PIN					(GPIO50 | 0x80000000)
+#define GPIO180                             		180
+#define GPIO_LCD_RESET_PIN				(GPIO180 | 0x80000000)
 
-#define GPIO180                             180
-#define GPIO_LCD_RESET_PIN					(GPIO180 | 0x80000000)
-
-#define GPIO108                             108
+#define GPIO108                             		108
 #define GPIO_LCD_BIAS_ENN_PIN				(GPIO108 | 0x80000000)
 
-#define GPIO87                              87
+#define GPIO87                              		87
 #define GPIO_LCD_BIAS_ENP_PIN				(GPIO87 | 0x80000000)
 
 // ---------------------------------------------------------------------------

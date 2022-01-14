@@ -1,16 +1,3 @@
-/*
- * Copyright (C) 2015 MediaTek Inc.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- */
-
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/types.h>
@@ -38,66 +25,6 @@ static dev_t devinfo_dev;
 static int devinfo_open(struct inode *inode, struct file *filp);
 static int devinfo_release(struct inode *inode, struct file *filp);
 static long devinfo_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
-
-// add for rn4x
-#define SLT_DEVINFO_KERNEL_SUPPORT
-#ifdef SLT_DEVINFO_KERNEL_SUPPORT
-#include <linux/dev_info.h>
-static DEFINE_SPINLOCK(dev_lock);
-static struct list_head active_devinfo_list ;
-
-int devinfo_ram_size;
-static ssize_t devinfo_show(struct device *dev1, struct device_attribute *attr, char *buf)
-{
-	char *p;
-	size_t   info_length = 0;
-	unsigned long irqflags;
-	struct devinfo_struct *devinfo;
-
-	spin_lock_irqsave(&dev_lock, irqflags);
-	p = buf;
-	info_length = sprintf(p, "type\t\t\tmodule\t\t\tvender\t\t\tic\t\t\tversion\t\t\tinfo\t\t\tused\n");
-	p += info_length;
-
-      list_for_each_entry(devinfo, &active_devinfo_list, device_link) {
-		info_length = sprintf(p, "%s\t\t\t%s\t\t\t%s\t\t\t%s\t\t\t%s\t\t\t%s\t\t\t%s\n",
-			devinfo->device_type, devinfo->device_module, devinfo->device_vendor,
-			devinfo->device_ic, devinfo->device_version, devinfo->device_info, devinfo->device_used);
-		p += info_length;
-      }
-      spin_unlock_irqrestore(&dev_lock, irqflags);
-	return (p-buf);
-}
-static ssize_t raw_show(struct device *dev1, struct device_attribute *attr, char *buf)
-
-{
-		sprintf(buf, "%d\n", devinfo_ram_size);
-	return strlen(buf);
-}
-	
-static DEVICE_ATTR(devinfo, S_IRUGO , devinfo_show, NULL);
-static DEVICE_ATTR(raw, S_IRUGO , raw_show, NULL);
-
-
-/*********************************************************************************
- * add new device if not yet;
- * Input:	devinfo_struct
- * Output:  1 / 0
- * Note: return 0 for there have a same device registed, not add. return 1 for add new device
- * *******************************************************************************/
-int devinfo_check_add_device(struct devinfo_struct *dev)
-{
-	int result = 0;
-      unsigned long irqflags;
-	struct devinfo_struct *dev_all;
-	printk("[DEVINFO] devinfo_check!\n");
-	spin_lock_irqsave(&dev_lock, irqflags);
-       list_add_tail(&dev->device_link, &active_devinfo_list);
-       spin_unlock_irqrestore(&dev_lock, irqflags);
-	return 1;
-}
-#endif
-// end rn4x
 
 /**************************************************************************
 *EXTERN FUNCTION
@@ -320,5 +247,4 @@ early_initcall(devinfo_of_init);
 module_init(devinfo_init);
 module_exit(devinfo_exit);
 MODULE_LICENSE("GPL");
-
 

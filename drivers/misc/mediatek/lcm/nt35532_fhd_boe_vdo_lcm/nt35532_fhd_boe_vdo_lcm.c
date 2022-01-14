@@ -1207,8 +1207,6 @@ int read_boardid(void)
 
 static void lcm_get_params(LCM_PARAMS *params)
 {
-	unsigned int boardid;
-	
 	memset(params, 0, sizeof(LCM_PARAMS));
 
 	params->module = "BOE";
@@ -1234,12 +1232,10 @@ static void lcm_get_params(LCM_PARAMS *params)
 	params->dsi.customization_esd_check_enable = 0;
 	params->dsi.ssc_disable = 1;
 	params->dsi.esd_check_enable = 1;
-
-	boardid = read_boardid();
-	printk("add by zhouhua  boardid  is  %d\n", boardid);
 	  
-	if (boardid == 3)
+	if (read_boardid() == 3)
 	{
+		printk("boardid  is 3\n");
 		params->dsi.horizontal_backporch = 30;
 		params->dsi.horizontal_frontporch = 90;
 		params->dsi.PLL_CLOCK = 448;
@@ -1252,98 +1248,55 @@ static void lcm_get_params(LCM_PARAMS *params)
 	}
 }
 
-static void tps65132_enable(char en)
+static void tps65132_enable(void)
 {
-	int ret=0;
-	int ret1=0;
-	int ret2=0;
+	int ret = 0;
+	int ret1 = 0;
+	int ret2 = 0;
 	int num = 0;
+	
 	mt_set_gpio_mode(GPIO_LCD_BIAS_ENN_PIN, GPIO_MODE_00);
 	mt_set_gpio_dir(GPIO_LCD_BIAS_ENN_PIN, GPIO_DIR_OUT);
+	ret1 = mt_set_gpio_out(GPIO_LCD_BIAS_ENN_PIN, GPIO_OUT_ONE);
+	MDELAY(12);
+	
 	mt_set_gpio_mode(GPIO_LCD_BIAS_ENP_PIN, GPIO_MODE_00);
 	mt_set_gpio_dir(GPIO_LCD_BIAS_ENP_PIN, GPIO_DIR_OUT);
+	ret2 = mt_set_gpio_out(GPIO_LCD_BIAS_ENP_PIN, GPIO_OUT_ONE);
 
-	if (en)
-	{			
-		ret1 = mt_set_gpio_out(GPIO_LCD_BIAS_ENP_PIN, GPIO_OUT_ONE);
-		MDELAY(12);
-		ret2 = mt_set_gpio_out(GPIO_LCD_BIAS_ENN_PIN, GPIO_OUT_ONE);
-		MDELAY(12);
-	#ifdef BUILD_LK
-		dprintf(0, "[LK]tps65132_enable, ret1 =%d, ret2 =%d\n", ret1, ret2);
-		for(num = 0; num < 3; num++)
-		{		
-			ret=TPS65132_write_byte(0x00,0x0f);
-			if(ret) 
-			{
-				dprintf(0, "nt35532--boe--tps65132_enable----cmd=0x00--i2c write error--num=%d\n", num);		
-				MDELAY(5);
-			}
-			else
-			{
-				dprintf(0, "nt35532--boe--tps65132_enable----cmd=0x00--i2c write success--num=%d\n", num);
-				break;
-			}
-		}
-
-		for(num = 0; num < 3; num++)
-		{	
-			ret=TPS65132_write_byte(0x01,0x0f);
-			if(ret) 
-			{
-				dprintf(0, "nt35532--boe--tps65132_enable----cmd=0x01--i2c write error--num=%d\n", num);
-				MDELAY(5);
-			}
-			else
-			{
-				dprintf(0, "nt35532--boe--tps65132_enable----cmd=0x01--i2c write success--num=%d\n", num);   
-				break;
-			}
-		}
-	#else
-		printk("tps65132_enable, ret1 =%d, ret2 =%d\n", ret1, ret2);
-		for(num = 0; num < 3; num++)
-		{	
-			ret=tps65132_write_bytes(0x00,0x0f);
-			if(ret<0)
-			{
-				printk("nt35532--boe--tps65132_enable-cmd=0x00-- i2c write error-num=%d\n", num);
-				MDELAY(5);
-			}
-			else
-			{
-				printk("nt35532--boe--tps65132_enable-cmd=0x00-- i2c write success-num=%d\n", num);
-				break;
-			}
-		}
-
-		for(num = 0; num < 3; num++)
-		{	
-			ret=tps65132_write_bytes(0x01,0x0f);
-			if(ret<0)
-			{
-				printk("nt35532--boe--tps65132_enable-cmd=0x01-- i2c write error-num=%d\n", num);
-				MDELAY(5);
-			}
-			else
-			{
-				printk("nt35532--boe--tps65132_enable-cmd=0x01-- i2c write success-num=%d\n", num);
-				break;
-			}
-		}
-	#endif
-	}
-	else
+	printk("tps65132_enable, ret1 =%d, ret2 =%d\n", ret1, ret2);
+	
+	for(num = 0; num < 3; num++)
 	{
-	#ifndef BUILD_LK
-		printk("[KERNEL]nt35532--boe--tps65132_enable-----sleep--\n");
-	#endif
-		mt_set_gpio_out(GPIO_LCD_BIAS_ENN_PIN, GPIO_OUT_ZERO);
-		MDELAY(12);
-		mt_set_gpio_out(GPIO_LCD_BIAS_ENP_PIN, GPIO_OUT_ZERO);
-		MDELAY(12);
+		ret = tps65132_write_bytes(0x00,0x0f);
+		if(ret < 0)
+		{
+			printk("nt35532--boe--tps65132_enable-cmd=0x00-- i2c write error-num=%d\n", num);
+			MDELAY(5);
+		}
+		else
+		{
+			printk("nt35532--boe--tps65132_enable-cmd=0x00-- i2c write success-num=%d\n", num);
+			break;
+		}
+	}
+
+	for(num = 0; num < 3; num++)
+	{	
+		ret = tps65132_write_bytes(0x01,0x0f);
+		if(ret < 0)
+		{
+			printk("nt35532--boe--tps65132_enable-cmd=0x01-- i2c write error-num=%d\n", num);
+			MDELAY(5);
+		}
+		else
+		{
+			printk("nt35532--boe--tps65132_enable-cmd=0x01-- i2c write success-num=%d\n", num);
+			break;
+		}
 	}
 }
+
 
 static void lcm_init(void)
 {
@@ -1524,13 +1477,13 @@ static void lcm_setbacklight_cmdq(void* handle,unsigned int level)
 
 LCM_DRIVER nt35532_fhd_boe_vdo_lcm_drv =
 {
-    .name           	= "nt35532_fhd_boe_vdo_lcm",
-    .set_util_funcs 	= lcm_set_util_funcs,
-    .get_params     	= lcm_get_params,
-    .init           	= lcm_init,
-    .suspend       	 	= lcm_suspend,
-    .resume         	= lcm_resume,   
-    .compare_id     	= lcm_compare_id,
-    .set_backlight_cmdq = lcm_setbacklight_cmdq,
-    .enable_cabc_cmdq   = lcm_cabc_enable_cmdq,
+	.name           	= "nt35532_fhd_boe_vdo_lcm",
+	.set_util_funcs 	= lcm_set_util_funcs,
+	.get_params     	= lcm_get_params,
+ 	.init           	= lcm_init,
+	.suspend       	 	= lcm_suspend,
+	.resume			= lcm_resume,   
+	.compare_id		= lcm_compare_id,
+	.set_backlight_cmdq	= lcm_setbacklight_cmdq,
+	.enable_cabc_cmdq	= lcm_cabc_enable_cmdq,
 };

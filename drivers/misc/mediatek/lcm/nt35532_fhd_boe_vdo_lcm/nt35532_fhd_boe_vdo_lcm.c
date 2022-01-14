@@ -642,11 +642,11 @@ static struct LCM_setting_table lcm_initialization_setting[] = {
 
 static struct LCM_setting_table lcm_deep_sleep_mode_in_setting[] = 
 {
-    {0x28, 0, {0x00}},
-    {REGFLAG_DELAY, 100, {}},
-    {0x10, 0, {0x00}},
-    {REGFLAG_DELAY, 120, {}},
-    {REGFLAG_END_OF_TABLE, 0x00, {}}
+	{0x28, 0, {0x00}},
+	{REGFLAG_DELAY, 100, {}},
+	{0x10, 0, {0x00}},
+	{REGFLAG_DELAY, 120, {}},
+	{REGFLAG_END_OF_TABLE, 0x00, {}}
 };
 
 static struct LCM_setting_table lcm_cabc_on_setting[]= 
@@ -663,8 +663,8 @@ static struct LCM_setting_table lcm_cabc_off_setting[] =
 
 static struct LCM_setting_table lcm_backlight_level_setting[] = 
 {
-    {0x51, 1, {0xFF}},
-    {REGFLAG_END_OF_TABLE, 0x00, {}}
+	{0x51, 1, {0xFF}},
+	{REGFLAG_END_OF_TABLE, 0x00, {}}
 };
 
 static struct LCM_setting_table lcm_cabc_on_initialization_setting[] = {
@@ -1164,26 +1164,22 @@ static struct LCM_setting_table lcm_cabc_on_initialization_setting[] = {
 
 static void push_table(struct LCM_setting_table *table, unsigned int count, unsigned char force_update)
 {
-    unsigned int i;
-
-    for(i = 0; i < count; i++) {
-        
-        unsigned cmd;
-        cmd = table[i].cmd;
-        
-        switch (cmd) {
-            case REGFLAG_DELAY :
-                MDELAY(table[i].count);
-                break;
-                
-            case REGFLAG_END_OF_TABLE :
-                break;
-                
-            default:
-                dsi_set_cmdq_V2(cmd, table[i].count, table[i].para_list, force_update);
+	unsigned int i;
+	
+	for(i = 0; i < count; i++) {
+		unsigned cmd;
+		cmd = table[i].cmd;
+		
+		switch (cmd) {
+			case REGFLAG_DELAY :
+				MDELAY(table[i].count);
+				break;
+			case REGFLAG_END_OF_TABLE :
+				break; 
+			default:
+				dsi_set_cmdq_V2(cmd, table[i].count, table[i].para_list, force_update);
         }
     }
-    
 }
 
 // ---------------------------------------------------------------------------
@@ -1197,19 +1193,16 @@ static void lcm_set_util_funcs(const LCM_UTIL_FUNCS *util)
 
 int read_boardid(void)
 {
-    char *result;
-    int board_id = 0;
+	char *result;
 
-    result = strstr(saved_command_line, "BoardID=");
+	result = strstr(saved_command_line, "BoardID=");
 
-    if (result) 
-    {
-        board_id = result[8] - '0';
-        return ((board_id > 9) ? 0 : board_id);
+	if (result) 
+	{
+		result = result[8] - '0';
+		return ((result > 9) ? 0 : result);
     }
-
-    return board_id;
-    //return result;
+    return result;
 }
 
 static void lcm_get_params(LCM_PARAMS *params)
@@ -1232,12 +1225,12 @@ static void lcm_get_params(LCM_PARAMS *params)
 	params->dsi.LANE_NUM = LCM_FOUR_LANE;
 	params->dsi.data_format.format = LCM_DSI_FORMAT_RGB888;
 	params->dsi.PS = LCM_PACKED_PS_24BIT_RGB888;
-    params->dsi.vertical_backporch = 17;
-    params->dsi.vertical_frontporch = 22;
-    params->dsi.vertical_sync_active = 2;
-    params->dsi.vertical_active_line = 1920;
-    params->dsi.horizontal_sync_active = 4;
-    params->dsi.horizontal_active_pixel = 1080;
+	params->dsi.vertical_backporch = 17;
+	params->dsi.vertical_frontporch = 22;
+	params->dsi.vertical_sync_active = 2;
+	params->dsi.vertical_active_line = 1920;
+	params->dsi.horizontal_sync_active = 4;
+	params->dsi.horizontal_active_pixel = 1080;
 	params->dsi.customization_esd_check_enable = 0;
 	params->dsi.ssc_disable = 1;
 	params->dsi.esd_check_enable = 1;
@@ -1247,7 +1240,7 @@ static void lcm_get_params(LCM_PARAMS *params)
 	  
 	if (boardid == 3)
 	{
-        params->dsi.horizontal_backporch = 30;
+		params->dsi.horizontal_backporch = 30;
 		params->dsi.horizontal_frontporch = 90;
 		params->dsi.PLL_CLOCK = 448;
 	}
@@ -1355,8 +1348,9 @@ static void tps65132_enable(char en)
 static void lcm_init(void)
 {
 	tps65132_enable(1);
-	
 	MDELAY(10);
+	mt_set_gpio_mode(GPIO_LCD_RESET_PIN, GPIO_MODE_00);
+	mt_set_gpio_dir(GPIO_LCD_RESET_PIN, GPIO_DIR_OUT);
 	mt_set_gpio_out(GPIO_LCD_RESET_PIN, GPIO_OUT_ONE);
 	MDELAY(10);
 	mt_set_gpio_out(GPIO_LCD_RESET_PIN, GPIO_OUT_ZERO);
@@ -1364,23 +1358,17 @@ static void lcm_init(void)
 	mt_set_gpio_out(GPIO_LCD_RESET_PIN, GPIO_OUT_ONE);
 	MDELAY(20);
 	
-    push_table(lcm_initialization_setting, sizeof(lcm_initialization_setting) / sizeof(struct LCM_setting_table), 1); // FF 00 00 00 01 01
+	push_table(lcm_initialization_setting, sizeof(lcm_initialization_setting) / sizeof(struct LCM_setting_table), 1); // FF 00 00 00 01 01
 }
 
 static void lcm_suspend(void)
 {
-	printk("lizhiye, lcm_suspend\n");
 	push_table(lcm_deep_sleep_mode_in_setting, sizeof(lcm_deep_sleep_mode_in_setting) / sizeof(struct LCM_setting_table), 1);
-	
 	printk("[KERNEL]nt35532--boe--tps65132_enable-----sleep--\n");
-	tps65132_enable(0);
 	
+	mt_set_gpio_out(GPIO_LCD_BIAS_ENN_PIN, GPIO_OUT_ZERO); // 0xFFFFFFC001715B68
 	MDELAY(12);
-	
-	mt_set_gpio_mode(GPIO_LCD_RESET_PIN, GPIO_MODE_00); //
-	mt_set_gpio_dir(GPIO_LCD_RESET_PIN, GPIO_DIR_OUT); // 0xFFFFFFC001715B68
-	mt_set_gpio_out(GPIO_LCD_RESET_PIN, GPIO_OUT_ZERO); //
-	
+	mt_set_gpio_out(GPIO_LCD_BIAS_ENP_PIN, GPIO_OUT_ZERO); // 0xFFFFFFC001715AA8
 	MDELAY(10);
 	mt_set_gpio_out(GPIO_LCD_RESET_PIN, GPIO_OUT_ZERO);
 }
@@ -1417,6 +1405,8 @@ static void lcm_resume(void)
 	tps65132_enable(1);
   
 	MDELAY(15);
+	mt_set_gpio_mode(GPIO_LCD_RESET_PIN, GPIO_MODE_00);
+	mt_set_gpio_dir(GPIO_LCD_RESET_PIN, GPIO_DIR_OUT);
 	mt_set_gpio_out(GPIO_LCD_RESET_PIN, GPIO_OUT_ONE);
 	MDELAY(5);
 	mt_set_gpio_out(GPIO_LCD_RESET_PIN, GPIO_OUT_ZERO);
@@ -1460,7 +1450,9 @@ static unsigned int lcm_compare_id(void) {
 	unsigned char buffer[8];
 	unsigned int array[16];  
 	unsigned int id = 0;
-
+	
+	mt_set_gpio_mode(GPIO_LCD_RESET_PIN, GPIO_MODE_00);
+	mt_set_gpio_dir(GPIO_LCD_RESET_PIN, GPIO_DIR_OUT);
 	mt_set_gpio_out(GPIO_LCD_RESET_PIN, GPIO_OUT_ONE);
 	MDELAY(50);
 	mt_set_gpio_out(GPIO_LCD_RESET_PIN, GPIO_OUT_ZERO);
@@ -1488,7 +1480,7 @@ static unsigned int lcm_compare_id(void) {
 
 static void lcm_cabc_enable_cmdq(void* handle,unsigned int enable)
 {
-	if(enable == 0)	//cabc off
+	if(enable == 0)
 	{
 		push_table(lcm_cabc_off_setting, sizeof(lcm_cabc_off_setting) / sizeof(struct LCM_setting_table), 1);
 	}
@@ -1510,10 +1502,14 @@ static void lcm_setbacklight_cmdq(void* handle,unsigned int level)
 		mapped_level = 255;
 	
 		last_backlight_level = mapped_level;
+		mt_set_gpio_mode(GPIO_LCD_BL_EN_PIN, GPIO_MODE_00);
+		mt_set_gpio_dir(GPIO_LCD_BL_EN_PIN, GPIO_DIR_OUT);
 		mt_set_gpio_out(GPIO_LCD_BL_EN_PIN, GPIO_OUT_ONE);
 	}
 	else
 	{
+		mt_set_gpio_mode(GPIO_LCD_BL_EN_PIN, GPIO_MODE_00);
+		mt_set_gpio_dir(GPIO_LCD_BL_EN_PIN, GPIO_DIR_OUT);
 		mt_set_gpio_out(GPIO_LCD_BL_EN_PIN, GPIO_OUT_ZERO);
 		MDELAY(30);
 	}
@@ -1537,5 +1533,4 @@ LCM_DRIVER nt35532_fhd_boe_vdo_lcm_drv =
     .compare_id     	= lcm_compare_id,
     .set_backlight_cmdq = lcm_setbacklight_cmdq,
     .enable_cabc_cmdq   = lcm_cabc_enable_cmdq,
-	
 };

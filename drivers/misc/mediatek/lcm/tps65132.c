@@ -11,7 +11,7 @@
 #else
 	#include <mt-plat/mt_gpio.h>
 #endif
-#include <../../../../arch/arm64/boot/dts/cust_i2c.h>
+#include <../../../../arch/arm64/boot/dts/nikel/cust_i2c.h>
 
 #include <linux/kernel.h>
 #include <linux/module.h>  

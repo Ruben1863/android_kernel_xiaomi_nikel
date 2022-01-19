@@ -37,6 +37,7 @@
 extern struct bus_type i2c_bus_type;
 extern struct device_type i2c_adapter_type;
 
+
 #ifdef CONFIG_MTK_I2C_EXTENSION
 #define I2C_A_FILTER_MSG	0x8000	/* filer out error messages	*/
 #define I2C_A_CHANGE_TIMING	0x4000	/* change timing parameters	*/

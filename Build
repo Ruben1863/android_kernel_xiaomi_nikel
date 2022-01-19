@@ -12,4 +12,4 @@ export ARCH=arm64
 export SUBARCH=arm64
 export TARGET=out
 make O=$TARGET ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE nikel_defconfig | tee -a Defconfig.log
-make O=$TARGET ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE -j8 | tee -a Kernel.log
+make O=$TARGET ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE -j16 2>&1 | tee -a Kernel.log

@@ -4234,6 +4234,6 @@
 
 };
 
-#include "cust.dtsi"
+#include "nikel/cust.dtsi"
 #include <trusty.dtsi>
 

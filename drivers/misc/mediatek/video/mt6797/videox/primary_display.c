@@ -212,6 +212,30 @@ typedef struct {
 
 #define pgc	_get_context()
 
+// add for rn4x
+#ifdef CONFIG_DEVINFO_LCM
+#define SLT_DEVINFO_LCM_DEBUG
+
+#include "mt-plat/dev_info.h"
+#include <linux/timer.h>
+struct devinfo_struct s_DEVINFO_lcm[10];   //suppose 10 max lcm device 
+
+void devinfo_lcm_reg(void)
+{
+	int i = 0;
+	for(i = 0; i < lcm_count; i++)
+	{
+#ifdef SLT_DEVINFO_LCM_DEBUG
+		printk("[DEVINFO LCM]registe LCM device!num:<%d> type:<%s> module:<%s> vendor<%s> ic<%s> version<%s> info<%s> used<%s>\n",i,
+				s_DEVINFO_lcm[i].device_type,s_DEVINFO_lcm[i].device_module,s_DEVINFO_lcm[i].device_vendor,s_DEVINFO_lcm[i].device_ic,
+				s_DEVINFO_lcm[i].device_version,s_DEVINFO_lcm[i].device_info,s_DEVINFO_lcm[i].device_used);
+#endif
+		devinfo_check_add_device(&s_DEVINFO_lcm[i]);
+	}
+}
+#endif
+// end add for rn4x
+
 static int smart_ovl_try_switch_mode_nolock(void);
 
 static display_primary_path_context *_get_context(void)
@@ -226,19 +250,6 @@ static display_primary_path_context *_get_context(void)
 
 	return &g_context;
 }
-
-// add for rn4x
-struct mutex esd_mode_switch_lock;
-static void _primary_path_esd_check_lock(void)
-{
-	mutex_lock(&esd_mode_switch_lock); 
-}
-
-static void _primary_path_esd_check_unlock(void)
-{
-	mutex_unlock(&esd_mode_switch_lock);
-}
-// end rn4x
 
 static void _primary_path_lock(const char *caller)
 {
@@ -2976,10 +2987,12 @@ static int primary_display_frame_update_kthread(void *data)
 	return 0;
 }
 
+// add for rn4x
 static int _present_fence_release_worker_thread(void *data)
 {
 	struct sched_param param = {.sched_priority = RTPM_PRIO_FB_THREAD };
-
+	devinfo_lcm_reg(); // add for rn4x
+	
 	sched_setscheduler(current, SCHED_RR, &param);
 
 	dpmgr_enable_event(pgc->dpmgr_handle, DISP_PATH_EVENT_IF_VSYNC);
@@ -3025,6 +3038,7 @@ static int _present_fence_release_worker_thread(void *data)
 
 	return 0;
 }
+// end add for rn4x
 
 int primary_display_set_frame_buffer_address(unsigned long va, unsigned long mva)
 {
@@ -3097,13 +3111,7 @@ static int update_primary_intferface_module(void)
 	return 0;
 }
 
-// add for rn4x
-#ifdef CONFIG_DEVINFO_LCM
-static int devinfo_first=0;
-extern void devinfo_lcm_reg(void);
-#endif
-// end rn4x
-
+extern void DISP_DEVINFO_LCM_get(const char* lcm_name); // add for rn4x
 int primary_display_init(char *lcm_name, unsigned int lcm_fps, int is_lcm_inited)
 {
 	DISP_STATUS ret = DISP_STATUS_OK;
@@ -3132,7 +3140,13 @@ int primary_display_init(char *lcm_name, unsigned int lcm_fps, int is_lcm_inited
 	fps_ctx_init(&primary_fps_ctx, disp_helper_get_option(DISP_OPT_FPS_CALC_WND));
 
 	_primary_path_lock(__func__);
-
+	
+	// add for rn4x
+#ifdef CONFIG_DEVINFO_LCM
+	DISP_DEVINFO_LCM_get(lcm_name);
+#endif
+	// end add for rn4x
+	
 	pgc->plcm = disp_lcm_probe(lcm_name, LCM_INTERFACE_NOTDEFINED, is_lcm_inited);
 
 	if (pgc->plcm == NULL) {
@@ -3150,16 +3164,6 @@ int primary_display_init(char *lcm_name, unsigned int lcm_fps, int is_lcm_inited
 		ret = DISP_STATUS_ERROR;
 		goto done;
 	}
-
-// add for rn4x
-#ifdef CONFIG_DEVINFO_LCM
-	if(devinfo_first==0)
-	{
-		devinfo_first=1;
-		devinfo_lcm_reg();
-	}
-#endif
-// end rn4x
 
 	update_primary_intferface_module();
 
@@ -3399,7 +3403,6 @@ int primary_display_init(char *lcm_name, unsigned int lcm_fps, int is_lcm_inited
 #endif
 /*
 	primary_display_sodi_rule_init();
-
 	if (disp_helper_get_option(DISP_HELPER_OPTION_DYNAMIC_SWITCH_MMSYSCLK))
 		register_mmclk_switch_cb(primary_display_switch_mmsys_clk);
 */
@@ -3880,10 +3883,6 @@ int primary_display_get_lcm_index(void)
 	DISPMSG("lcm index = %d\n", index);
 	return index;
 }
-
-// add for rn4x
-int cabc_enable_flag = 0;
-// end rn4x
 
 int primary_display_resume(void)
 {
@@ -5767,10 +5766,12 @@ int primary_display_setbacklight(unsigned int level)
 }
 
 // add for rn4x
+int cabc_enable_flag = 0;
+
 int primary_display_enable_cabc(unsigned int enable)	
 {
 	DISPFUNC();
-//	int ret = 0;
+
 	if(enable == 1)
 	{
 		cabc_enable_flag = 1;
@@ -5786,38 +5787,14 @@ int primary_display_enable_cabc(unsigned int enable)
 		return 0;
 	}
 
-#ifdef DISP_SWITCH_DST_MODE
-	_primary_path_switch_dst_lock();
-#endif
-	_primary_path_esd_check_lock();		//add by lizhiye
-	_primary_path_lock(__func__);
 	if(pgc->state == DISP_SLEPT)
 	{
-		DISPCHECK("Sleep State set cabc invald\n");
+		DISPERR("Sleep State set cabc invald\n");
+		return 0;
+	} else if(primary_display_cmdq_enabled() && primary_display_is_video_mode()) {
+		disp_lcm_enable_cabc(pgc->plcm, NULL, enable);
 	}
-	else
-	{
-		if(primary_display_cmdq_enabled())	
-		{	
-			if(primary_display_is_video_mode())
-			{
-				disp_lcm_enable_cabc(pgc->plcm,NULL,enable);
-			}
-			else
-			{
-				//...
-			}
-		}
-		else
-		{
-			//....
-		}
-	}
-	_primary_path_unlock(__func__);
-	_primary_path_esd_check_unlock();		//add by lizhiye
-#ifdef DISP_SWITCH_DST_MODE
-	_primary_path_switch_dst_lock();
-#endif
+
 	return 0;
 }
 // end rn4x

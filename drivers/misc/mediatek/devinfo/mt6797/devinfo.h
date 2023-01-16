@@ -39,4 +39,3 @@ struct devinfo_tag {
 #endif
 
 #endif /* end of DEVFINO_H */
-

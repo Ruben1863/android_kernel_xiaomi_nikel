@@ -910,19 +910,19 @@
 
 /* DISPSYS GPIO start */
 &mtkfb {
-	pinctrl-names = "mode_te_gpio", "mode_te_te", "lcm_rst_out0_gpio", "lcm_rst_out1_gpio", "lcd_bias_enp0_gpio", "lcd_bias_enp1_gpio", "lcd_bias_enn0_gpio", "lcd_bias_enn1_gpio", "lcd_pwr_en0_gpio", "lcd_pwr_en1_gpio", "lcd_backlight_en0_gpio", "lcd_backlight_en0_gpio";
+	pinctrl-names = "mode_te_gpio", "mode_te_te", "lcm_rst_out0_gpio", "lcm_rst_out1_gpio", "lcd_bias_enp1_gpio", "lcd_bias_enp0_gpio", "lcd_pwr_en1_gpio", "lcd_pwr_en0_gpio", "lcd_bias_enn1_gpio", "lcd_bias_enn0_gpio", "lcd_backlight_en1_gpio", "lcd_backlight_en0_gpio";
 	pinctrl-0 = <&mtkfb_pins_mode_te_gpio>;
 	pinctrl-1 = <&mtkfb_pins_mode_te_te>;
 	pinctrl-2 = <&mtkfb_pins_lcm_reset0>;
 	pinctrl-3 = <&mtkfb_pins_lcm_reset1>;
-	pinctrl-4 = <&mtkfb_pins_lcd_bias_enp0>;
-	pinctrl-5 = <&mtkfb_pins_lcd_bias_enp1>;
-	pinctrl-6 = <&mtkfb_pins_lcd_bias_enn0>;
-	pinctrl-7 = <&mtkfb_pins_lcd_bias_enn1>;
-	pinctrl-8 = <&mtkfb_pins_lcd_pwr_en0>;
-	pinctrl-9 = <&mtkfb_pins_lcd_pwr_en1>;
-	pinctrl-10 = <&mtkfb_pins_lcd_backlight_en0>;
-	pinctrl-11 = <&mtkfb_pins_lcd_backlight_en1>;
+	pinctrl-4 = <&mtkfb_pins_lcd_bias_enp1>;
+	pinctrl-5 = <&mtkfb_pins_lcd_bias_enp0>;
+	pinctrl-6 = <&mtkfb_pins_lcd_pwr_en1>;
+	pinctrl-7 = <&mtkfb_pins_lcd_pwr_en0>;
+	pinctrl-8 = <&mtkfb_pins_lcd_bias_enn1>;
+	pinctrl-9 = <&mtkfb_pins_lcd_bias_enn0>;
+	pinctrl-10 = <&mtkfb_pins_lcd_backlight_en1>;
+	pinctrl-11 = <&mtkfb_pins_lcd_backlight_en0>;
 	status = "okay";
 };
 
@@ -955,15 +955,7 @@
 			output-high;
 		};
 	};
-
-	mtkfb_pins_lcd_bias_enp0: lcd_bias_enp0_gpio {
-		pins_cmd_dat {
-			pins = <PINMUX_GPIO87__FUNC_GPIO87>;
-			slew-rate = <1>;
-			output-low;
-		};
-	};
-
+	
 	mtkfb_pins_lcd_bias_enp1: lcd_bias_enp1_gpio {
 		pins_cmd_dat {
 			pins = <PINMUX_GPIO87__FUNC_GPIO87>;
@@ -972,14 +964,30 @@
 		};
 	};
 
-	mtkfb_pins_lcd_bias_enn0: lcd_bias_enn0_gpio {
+	mtkfb_pins_lcd_bias_enp0: lcd_bias_enp0_gpio {
 		pins_cmd_dat {
-			pins = <PINMUX_GPIO108__FUNC_GPIO108>;
+			pins = <PINMUX_GPIO87__FUNC_GPIO87>;
 			slew-rate = <1>;
 			output-low;
 		};
 	};
-
+	
+	mtkfb_pins_lcd_pwr_en1: lcd_pwr_en1_gpio { 
+		pins_cmd_dat {
+			pins = <PINMUX_GPIO45__FUNC_GPIO45>;
+			slew-rate = <1>;
+			output-high;
+		};
+	};
+	
+	mtkfb_pins_lcd_pwr_en0: lcd_pwr_en0_gpio { 
+		pins_cmd_dat {
+			pins = <PINMUX_GPIO45__FUNC_GPIO45>;
+			slew-rate = <1>;
+			output-low;
+		};
+	};
+	
 	mtkfb_pins_lcd_bias_enn1: lcd_bias_enn1_gpio {
 		pins_cmd_dat {
 			pins = <PINMUX_GPIO108__FUNC_GPIO108>;
@@ -988,17 +996,17 @@
 		};
     };
 
-	mtkfb_pins_lcd_pwr_en0: lcd_pwr_en0_gpio { 
+	mtkfb_pins_lcd_bias_enn0: lcd_bias_enn0_gpio {
 		pins_cmd_dat {
-			pins = <PINMUX_GPIO45__FUNC_GPIO45>;
+			pins = <PINMUX_GPIO108__FUNC_GPIO108>;
 			slew-rate = <1>;
 			output-low;
 		};
 	};
-
-	mtkfb_pins_lcd_pwr_en1: lcd_pwr_en1_gpio { 
+	
+	mtkfb_pins_lcd_backlight_en1: lcd_backlight_en1_gpio { 
 		pins_cmd_dat {
-			pins = <PINMUX_GPIO45__FUNC_GPIO45>;
+			pins = <PINMUX_GPIO50__FUNC_GPIO50>;
 			slew-rate = <1>;
 			output-high;
 		};
@@ -1011,15 +1019,6 @@
 			output-low;
 		};
 	};
-
-	mtkfb_pins_lcd_backlight_en1: lcd_backlight_en1_gpio { 
-		pins_cmd_dat {
-			pins = <PINMUX_GPIO50__FUNC_GPIO50>;
-			slew-rate = <1>;
-			output-high;
-		};
-	};
-
 };
 /* DISPSYS GPIO end */
 /* CAMERA GPIO standardization */

@@ -206,3 +206,9 @@ obj-$(CONFIG_MTK_CPU_STRESS)	+= cpu_stress/
 endif
 obj-$(CONFIG_MTK_VOW_SUPPORT)	+= vow/
 obj-$(CONFIG_MTK_CACHE_DUMP) += cache_dump/
+
+# add for rn4x
+
+obj-$(CONFIG_LCT_DEVINFO_SUPPORT) += lct_devinfo/
+#obj-$(CONFIG_LCT_DEVINFO_SUPPORT) += lct_meminfo/
+# end

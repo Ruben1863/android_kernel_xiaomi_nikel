@@ -1373,3 +1373,4 @@ int mt_mt65xx_blink_set(struct led_classdev *led_cdev,
 	/* delay_on and delay_off are not changed */
 	return 0;
 }
+

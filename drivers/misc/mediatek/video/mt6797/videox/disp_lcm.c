@@ -30,30 +30,18 @@
 /* static disp_lcm_handle _disp_lcm_driver[MAX_LCM_NUMBER]; */
 
 // add for rn4x
+#ifndef CONFIG_DEVINFO_LCM
+#define CONFIG_DEVINFO_LCM
+#endif
 
 #ifdef CONFIG_DEVINFO_LCM
 #define SLT_DEVINFO_LCM_DEBUG
-
-#include  <linux/dev_info.h>
+#include "mt-plat/dev_info.h"
 #include <linux/timer.h>
-struct devinfo_struct s_DEVINFO_lcm[10];   //suppose 10 max lcm device 
 
-int devinfo_lcm_reg(void)
-{
-	int i=0;
-	for(i = 0;i < lcm_count;i++)
-	{
-#ifdef SLT_DEVINFO_LCM_DEBUG
-		printk("[DEVINFO LCM]registe LCM device!num:<%d> type:<%s> module:<%s> vendor<%s> ic<%s> version<%s> info<%s> used<%s>\n",i,
-				s_DEVINFO_lcm[i].device_type,s_DEVINFO_lcm[i].device_module,s_DEVINFO_lcm[i].device_vendor,s_DEVINFO_lcm[i].device_ic,
-				s_DEVINFO_lcm[i].device_version,s_DEVINFO_lcm[i].device_info,s_DEVINFO_lcm[i].device_used);
-#endif
-		devinfo_check_add_device(&s_DEVINFO_lcm[i]);
-	}
-		return 0;
-}
+extern struct devinfo_struct s_DEVINFO_lcm[10];
 
-int DISP_DEVINFO_LCM_get(const char* lcm_name)
+void DISP_DEVINFO_LCM_get(const char* lcm_name)
 {
 	LCM_DRIVER *slt_lcm = NULL;
 	int i;
@@ -88,11 +76,9 @@ int DISP_DEVINFO_LCM_get(const char* lcm_name)
 			s_DEVINFO_lcm[i].device_used);
 #endif
 	}
-	return 0;
-}	
+}
 #endif
-
-// end rn4x
+// end add for rn4x
 
 int _lcm_count(void)
 {
@@ -1063,12 +1049,6 @@ disp_lcm_handle *disp_lcm_probe(char *plcm_name, LCM_INTERFACE_ID lcm_id, int is
 		goto FAIL;
 	}
 
-// add for rn4
-#ifdef CONFIG_DEVINFO_LCM
-	DISP_DEVINFO_LCM_get(plcm_name);
-#endif
-// end rn4x
-
 #if defined(MTK_LCM_DEVICE_TREE_SUPPORT)
 	if (isLCMDtFound == true)
 		load_lcm_resources_from_DT(plcm->drv);
@@ -1355,15 +1335,14 @@ int disp_lcm_enable_cabc(disp_lcm_handle *plcm,  void* handle, int enable)
 		lcm_drv = plcm->drv;
 		if(lcm_drv->enable_cabc_cmdq)
 		{
-			lcm_drv->enable_cabc_cmdq(handle,enable);
+			lcm_drv->enable_cabc_cmdq(handle, enable);
+			return 0;
 		}
 		else
 		{
 			DISPERR("FATAL ERROR, lcm_drv->enable_cabc_cmdq is null\n");
 			return -1;
 		}
-		
-		return 0;
 	}
 	else
 	{

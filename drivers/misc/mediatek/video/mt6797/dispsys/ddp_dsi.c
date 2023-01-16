@@ -2702,10 +2702,15 @@ int DSI_Send_ROI(DISP_MODULE_ENUM module, void *handle, unsigned int x, unsigned
 	return 0;
 }
 
-
-
+// add for rn4x
 static void lcm_set_reset_pin(UINT32 value)
-{
+{	
+	if (value)
+		disp_dts_gpio_select_state(DTS_GPIO_STATE_LCM_RST_OUT1);
+	else
+		disp_dts_gpio_select_state(DTS_GPIO_STATE_LCM_RST_OUT0);
+
+/*
 #if 1
 	DSI_OUTREG32(NULL, DISPSYS_CONFIG_BASE + 0x150, value);
 #else
@@ -2716,7 +2721,9 @@ static void lcm_set_reset_pin(UINT32 value)
 		disp_dts_gpio_select_state(DTS_GPIO_STATE_LCM_RST_OUT0);
 #endif
 #endif
+*/
 }
+// end rn4x
 
 static void lcm_udelay(UINT32 us)
 {
@@ -2828,19 +2835,60 @@ unsigned int DSI_dcs_read_lcm_reg_v2_wrapper_DSIDUAL(UINT8 cmd, UINT8 *buffer, U
 	return DSI_dcs_read_lcm_reg_v2(DISP_MODULE_DSIDUAL, NULL, cmd, buffer, buffer_size);
 }
 
+// add for rn4x
 long lcd_enp_bias_setting(unsigned int value)
 {
 	long ret = 0;
 
-#if !defined(CONFIG_MTK_LEGACY)
-	if (value)
-		ret = disp_dts_gpio_select_state(DTS_GPIO_STATE_LCD_BIAS_ENP);
-	else
-		ret = disp_dts_gpio_select_state(DTS_GPIO_STATE_LCD_BIAS_ENN);
-#endif
+	if (value) {
+		ret = disp_dts_gpio_select_state(DTS_GPIO_STATE_LCD_BIAS_ENP1);
+	} else {
+		ret = disp_dts_gpio_select_state(DTS_GPIO_STATE_LCD_BIAS_ENP0);
+	}
 
 	return ret;
 }
+
+long lcd_enn_bias_setting(unsigned int value)
+{
+	long ret = 0;
+
+	if (value) {
+		ret = disp_dts_gpio_select_state(DTS_GPIO_STATE_LCD_BIAS_ENN1);
+	} else {
+		ret = disp_dts_gpio_select_state(DTS_GPIO_STATE_LCD_BIAS_ENN0);
+	}
+
+	return ret;
+}
+
+long lcd_backlight_en_setting(unsigned int value)
+{
+	long ret = 0;
+
+	if (value) {
+		ret = disp_dts_gpio_select_state(DTS_GPIO_STATE_LCD_BL_EN1);
+	} else {
+		ret = disp_dts_gpio_select_state(DTS_GPIO_STATE_LCD_BL_EN0);
+	}
+
+	return ret;
+}
+
+long lcd_pwr_en_setting(unsigned int value)
+{
+	long ret = 0;
+
+	if (value) {
+		disp_dts_gpio_select_state(DTS_GPIO_STATE_LCD_PWR_EN1);
+	} else {
+		disp_dts_gpio_select_state(DTS_GPIO_STATE_LCD_PWR_EN0);
+	}
+
+	return ret;
+}
+// end add for rn4x
+
 int ddp_dsi_set_lcm_utils(DISP_MODULE_ENUM module, LCM_DRIVER *lcm_drv)
 {
 	LCM_UTIL_FUNCS *utils = NULL;
@@ -2908,16 +2956,12 @@ int ddp_dsi_set_lcm_utils(DISP_MODULE_ENUM module, LCM_DRIVER *lcm_drv)
 		}
 	}
 
-#ifndef CONFIG_FPGA_EARLY_PORTING
-#ifdef CONFIG_MTK_LEGACY
-	utils->set_gpio_out = mt_set_gpio_out;
-	utils->set_gpio_mode = mt_set_gpio_mode;
-	utils->set_gpio_dir = mt_set_gpio_dir;
-	utils->set_gpio_pull_enable = (int (*)(unsigned int, unsigned char))mt_set_gpio_pull_enable;
-#else
+// add for rn4x
 	utils->set_gpio_lcd_enp_bias = lcd_enp_bias_setting;
-#endif
-#endif
+	utils->set_gpio_lcd_pwr_en = lcd_pwr_en_setting;
+	utils->set_gpio_lcd_enn_bias = lcd_enn_bias_setting;
+	utils->set_gpio_lcd_backlight_en = lcd_backlight_en_setting;
+// end rn4x
 
 	lcm_drv->set_util_funcs(utils);
 

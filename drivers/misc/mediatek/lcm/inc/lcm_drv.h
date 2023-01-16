@@ -758,13 +758,12 @@ typedef struct {
 } LCM_setting_table_V3;
 
 typedef struct {
-	void (*set_reset_pin)(unsigned int value);
 	void (*set_chip_select)(unsigned int value);
 	int (*set_gpio_out)(unsigned int gpio, unsigned int value);
 
 	void (*udelay)(unsigned int us);
-	void (*mdelay)(unsigned int ms);
 	void (*rar)(unsigned int ms);
+	void (*mdelay)(unsigned int ms);
 
 	void (*send_cmd)(unsigned int cmd);
 	void (*send_data)(unsigned int data);
@@ -776,6 +775,7 @@ typedef struct {
 				 unsigned char force_update);
 	void (*dsi_set_cmdq)(unsigned int *pdata, unsigned int queue_size,
 			      unsigned char force_update);
+	void (*set_reset_pin)(unsigned int value);
 	void (*dsi_set_null)(unsigned cmd, unsigned char count, unsigned char *para_list,
 			      unsigned char force_update);
 	void (*dsi_write_cmd)(unsigned int cmd);
@@ -792,7 +792,14 @@ typedef struct {
 	int (*set_gpio_mode)(unsigned int pin, unsigned int mode);
 	int (*set_gpio_dir)(unsigned int pin, unsigned int dir);
 	int (*set_gpio_pull_enable)(unsigned int pin, unsigned char pull_en);
+	
+	// add for rn4x
+	long (*set_gpio_lcd_enn_bias)(unsigned int value);
+	long (*set_gpio_lcd_pwr_en)(unsigned int value);
 	long (*set_gpio_lcd_enp_bias)(unsigned int value);
+	long (*set_gpio_lcd_backlight_en)(unsigned int value);
+	// end rn4x
+	
 	void (*dsi_set_cmdq_V11)(void *cmdq, unsigned int *pdata, unsigned int queue_size,
 				  unsigned char force_update);
 	void (*dsi_set_cmdq_V22)(void *cmdq, unsigned cmd, unsigned char count,
@@ -801,6 +808,7 @@ typedef struct {
 	void (*dsi_set_cmdq_V23)(void *cmdq, unsigned cmd, unsigned char count,
 				  unsigned char *para_list, unsigned char force_update);	/* dual */
 } LCM_UTIL_FUNCS;
+
 typedef enum {
 	LCM_DRV_IOCTL_ENABLE_CMD_MODE = 0x100,
 } LCM_DRV_IOCTL_CMD;
@@ -830,7 +838,7 @@ typedef struct {
 	void (*set_backlight_cmdq)(void *handle, unsigned int level);
 // add for rn4x
     void (*enable_cabc_cmdq)(void* handle, unsigned int enable);
-// end
+// end rn4x
 	void (*set_pwm)(unsigned int divider);
 	unsigned int (*get_pwm)(unsigned int divider);
 	void (*set_backlight_mode)(unsigned int mode);

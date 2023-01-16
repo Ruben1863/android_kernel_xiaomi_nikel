@@ -89,20 +89,25 @@ unsigned int _can_switch_check_mode(void)
 	return ret;
 }
 
-static unsigned int _need_do_esd_check(void)
-{
+// add for rn4x
+int lcm_esd_te_pin = 0;
+static unsigned int _need_do_esd_check(void) {
 	int ret = 0;
-#ifdef CONFIG_OF
-	if ((primary_get_lcm()->params->dsi.esd_check_enable == 1) && (islcmconnected == 1))
-		ret = 1;
 
+#ifdef CONFIG_OF
+	if ((primary_get_lcm()->params->dsi.esd_check_enable == 1) && (islcmconnected == 1)) {
+		ret = 1;
+	} else {
+		printk("esd islcmconnected=0, not te signal\n");
+		lcm_esd_te_pin = 1;
+	}
 #else
 	if (primary_get_lcm()->params->dsi.esd_check_enable == 1)
 		ret = 1;
-
 #endif
 	return ret;
 }
+// end rn4x
 
 /* For Cmd Mode Read LCM Check */
 /* Config cmdq_handle_config_esd */
@@ -398,11 +403,20 @@ destroy_cmdq:
 /* ESD CHECK FUNCTION */
 /* return 1: esd check fail */
 /* return 0: esd check pass */
+int esd_unknown_flag;
+int esd_unknown_flag2;
+
 int primary_display_esd_check(void)
 {
 	int ret = 0;
 	unsigned int mode;
-
+	
+	// add for rn4x
+	esd_unknown_flag2 = esd_unknown_flag2 + 1;
+	if ( esd_unknown_flag2 > 19 )
+		esd_unknown_flag2 = 20;
+	// end add for rn4x
+	
 	dprec_logger_start(DPREC_LOGGER_ESD_CHECK, 0, 0);
 	MMProfileLogEx(ddp_mmp_get_events()->esd_check_t, MMProfileFlagStart, 0, 0);
 	DISPCHECK("[ESD]ESD check begin\n");
@@ -418,6 +432,7 @@ int primary_display_esd_check(void)
 
 	/*  Esd Check : EXT TE */
 	if (primary_get_lcm()->params->dsi.customization_esd_check_enable == 0) {
+		DISPCHECK("[ESD] Check : EXT TE\n");
 		/* use te for esd check */
 		MMProfileLogEx(ddp_mmp_get_events()->esd_extte, MMProfileFlagStart, 0, 0);
 
@@ -430,6 +445,19 @@ int primary_display_esd_check(void)
 			ret = do_esd_check_eint();
 			mode = GPIO_DSI_MODE; /* used for mode switch */
 			primary_display_switch_esd_mode(mode);
+			
+			// add for rn4x
+			DISPCHECK("[ESD]ESD check eint check flag ret=%d\n", ret);
+			if (ret == 1) {
+				mode = GPIO_DSI_MODE;
+				esd_unknown_flag = esd_unknown_flag + 1;
+				if (esd_unknown_flag > 3 && esd_unknown_flag2 < 11)
+					lcm_esd_te_pin = 1;
+			} else {
+				mode = GPIO_DSI_MODE;
+			}
+			// end add for rn4x
+			
 		} else if (GPIO_DSI_MODE == mode) {
 			MMProfileLogEx(ddp_mmp_get_events()->esd_extte, MMProfileFlagPulse,
 				primary_display_is_video_mode(), mode);

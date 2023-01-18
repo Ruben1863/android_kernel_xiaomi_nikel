@@ -4,17 +4,13 @@
 =========================================================================
 * Working:
 	* LCM (For now just nt35532_fhd_boe_vdo_lcm)
-  * "Boot" (see notes)
-  * "MTP"
-  * ADB
+	* Boot
+	* MTP
+	* ADB
 
 =================================================
 * Not working:
 	* Almost all for now
-
-=================================================
-* Notes:
-	* "Random boot": kernel just boots on a specific twrp image, I dont know the reason.
 
 # Building the kernel
 ```

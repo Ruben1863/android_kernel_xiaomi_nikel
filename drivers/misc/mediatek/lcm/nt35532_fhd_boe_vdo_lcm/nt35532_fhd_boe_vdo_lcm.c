@@ -208,12 +208,10 @@ static LCM_UTIL_FUNCS lcm_util = { 0 };
 #define read_reg(cmd)   lcm_util.dsi_dcs_read_lcm_reg(cmd)
 #define wrtie_cmd(cmd)	lcm_util.dsi_write_cmd(cmd)
 
-//rn4x
 #define set_gpio_lcd_enp(cmd)	lcm_util.set_gpio_lcd_enp_bias(cmd)
 #define set_gpio_lcd_enn(cmd)	lcm_util.set_gpio_lcd_enn_bias(cmd)
 #define set_gpio_lcd_bl(cmd)	lcm_util.set_gpio_lcd_backlight_en(cmd)
 #define set_gpio_lcd_pwr(cmd)	lcm_util.set_gpio_lcd_pwr_en(cmd)
-//end
 
 struct LCM_setting_table {
     unsigned cmd;
@@ -1399,49 +1397,6 @@ static void lcm_set_util_funcs(const LCM_UTIL_FUNCS *util)
 	memcpy(&lcm_util, util, sizeof(LCM_UTIL_FUNCS));
 }
 
-/*
-static int read_boardid(void)
-{
-	char *result;
-	int id = 0;
-	result = strstr(saved_command_line, "BoardID=");
-	
-	printk("[READ_BOARDID] cmd = %s", saved_command_line);
-	printk("[READ_BOARDID] result = %s", result);
-	
-	if (result)
-	{
-		printk("[READ_BOARDID] debug line at if");
-		id = result[8] - '0';
-		return ((id > 9) ? 0 : id);
-    }
-    return id;
-}
-*/
-
-/*
-int lct_read_boardid(void)
-{
-    char *p_boardid = strstr(saved_command_line, "BoardID=");
-    int boardid[2];
-
-    printk("[READ_BOARDID] cmd = %s", saved_command_line);
-
-    if (p_boardid == NULL)
-    {
-      printk("[READ_BOARDID] debug: null");
-      return -1;
-
-    }
-
-    printk("[READ_BOARDID] result = %s", p_boardid);
-
-    boardid[0] = *(p_boardid + 8) - '0';
-    boardid[1] = *(p_boardid + 9) - '0';
-
-    return (boardid[0] * 10 + boardid[1]);
-}*/
-
 static void lcm_get_params(LCM_PARAMS *params)
 {
 	memset(params, 0, sizeof(LCM_PARAMS));
@@ -1475,21 +1430,6 @@ static void lcm_get_params(LCM_PARAMS *params)
 	params->dsi.PLL_CLOCK = 448;
 	
 	printk("[READ_BOARDID] BoardID = %d", lct_read_boardid());
-	/*
-	if (read_boardid() == 3)
-	{
-		printk("boardid  is 3\n");
-		params->dsi.horizontal_backporch = 30;
-		params->dsi.horizontal_frontporch = 90;
-		params->dsi.PLL_CLOCK = 448;
-	}
-	else
-	{
-		params->dsi.horizontal_backporch = 95;
-		params->dsi.horizontal_frontporch = 95;
-		params->dsi.PLL_CLOCK = 481;
-	}
-	*/
 }
 
 static void tps65132_enable(void)
@@ -1591,29 +1531,25 @@ static void lcm_resume(void)
 	SET_RESET_PIN(1);
 	MDELAY(20);
 
-	if(cabc_enable_flag == 0) {
-		if(last_backlight_level <= 32) {
-			if(backlight_array_num != 0) {
-				lcm_initialization_setting[backlight_array_num].para_list[0] = last_backlight_level;
-			}
-		} else {
-			if(backlight_array_num != 0) {
-				lcm_initialization_setting[backlight_array_num].para_list[0] = 32;
-			}
-		}
-		push_table(lcm_initialization_setting, sizeof(lcm_initialization_setting) / sizeof(struct LCM_setting_table), 1);
-	} else {
-		if(last_backlight_level <= 32) {
-			if(backlight_array_num != 0) {
-				lcm_cabc_on_initialization_setting[backlight_array_num].para_list[0] = last_backlight_level;
-			}
-		} else {
-			if(backlight_array_num != 0) {
-				lcm_cabc_on_initialization_setting[backlight_array_num].para_list[0] = 32;
-			}
-		}
-		push_table(lcm_cabc_on_initialization_setting, sizeof(lcm_cabc_on_initialization_setting) / sizeof(struct LCM_setting_table), 1);
-	}
+    if (cabc_enable_flag == 0) {
+	    if (last_backlight_level > 32) {
+		    if (backlight_array_num != 0) {
+			    lcm_initialization_setting[backlight_array_num].para_list[0] = 32;
+			    push_table(lcm_initialization_setting, sizeof(lcm_initialization_setting) / sizeof(struct LCM_setting_table), 1);
+		    }
+	    } else if (backlight_array_num) {
+		    lcm_initialization_setting[backlight_array_num].para_list[0] = last_backlight_level;
+	    }
+	    push_table(lcm_initialization_setting, sizeof(lcm_initialization_setting) / sizeof(struct LCM_setting_table), 1);
+    } else {
+	    if (last_backlight_level > 32) {
+		    if (backlight_array_num != 0)
+			    lcm_cabc_on_initialization_setting[backlight_array_num].para_list[0] = 32;
+	    } else if (backlight_array_num != 0) {
+		    lcm_cabc_on_initialization_setting[backlight_array_num].para_list[0] = last_backlight_level;
+	    }
+	    push_table(lcm_cabc_on_initialization_setting, sizeof(lcm_cabc_on_initialization_setting) / sizeof(struct LCM_setting_table), 1);
+    }
 }
 static unsigned int lcm_compare_id(void) {
 

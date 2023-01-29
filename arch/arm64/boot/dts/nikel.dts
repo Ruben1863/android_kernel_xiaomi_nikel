@@ -584,6 +584,7 @@
 /* NFC end */
 
 &touch {
+    debounce = <85 0>;
 	tpd-resolution = <1080 1920>;
 	use-tpd-button = <1>;
 	tpd-key-num = <3>;
@@ -594,14 +595,17 @@
 	tpd-filter-pixel-density = <146>;
 	tpd-filter-custom-prameters = <0 0 0 0 0 0 0 0 0 0 0 0>;
 	tpd-filter-custom-speed = <0 0 0>;
+	/*regulator-name = "vtouch";*/
 	pinctrl-names = "default", "state_eint_as_int", "state_eint_output0", "state_eint_output1",
-		"state_rst_output0", "state_rst_output1";
+		"state_rst_output0", "state_rst_output1", "state_enable_regulator_output0", "state_enable_regulator_output1";
 	pinctrl-0 = <&ctp_pins_default>;
 	pinctrl-1 = <&ctp_pins_eint_as_int>;
 	pinctrl-2 = <&ctp_pins_eint_output0>;
 	pinctrl-3 = <&ctp_pins_eint_output1>;
 	pinctrl-4 = <&ctp_pins_rst_output0>;
 	pinctrl-5 = <&ctp_pins_rst_output1>;
+	pinctrl-6 = <&ctp_pins_regulator_en_output0>;
+	pinctrl-7 = <&ctp_pins_regulator_en_output1>;
 	status = "okay";
 };
 
@@ -639,6 +643,21 @@
 	ctp_pins_rst_output1: rstoutput1 {
 		pins_cmd_dat {
 			pins = <PINMUX_GPIO68__FUNC_GPIO68>;
+			slew-rate = <1>;
+			output-high;
+		};
+	};
+	ctp_pins_regulator_en_output0: state_enable_regulator_output0 {
+		pins_cmd_dat {
+			pins = <PINMUX_GPIO58__FUNC_GPIO58>;
+			slew-rate = <1>;
+			output-low;
+		};
+	};
+
+	ctp_pins_regulator_en_output1: state_enable_regulator_output1 {
+		pins_cmd_dat {
+			pins = <PINMUX_GPIO58__FUNC_GPIO58>;
 			slew-rate = <1>;
 			output-high;
 		};
@@ -941,7 +960,7 @@
 
 /* DISPSYS GPIO start */
 &mtkfb {
-	pinctrl-names = "mode_te_gpio", "mode_te_te", "lcm_rst_out0_gpio", "lcm_rst_out1_gpio", "lcd_bias_enp1_gpio", "lcd_bias_enp0_gpio", "lcd_pwr_en1_gpio", "lcd_pwr_en0_gpio", "lcd_bias_enn1_gpio", "lcd_bias_enn0_gpio", "lcd_backlight_en1_gpio", "lcd_backlight_en0_gpio";
+	pinctrl-names = "mode_te_gpio", "mode_te_te", "lcm_rst_out0_gpio", "lcm_rst_out1_gpio", "lcd_bias_enp_gpio_high", "lcd_bias_enp_gpio_low", "lcd_pwr_en_gpio_high", "lcd_pwr_en_gpio_low", "lcd_bias_enn_gpio_high", "lcd_bias_enn_gpio_low", "lcd_backlight_en_gpio_high", "lcd_backlight_en_gpio_low";
 	pinctrl-0 = <&mtkfb_pins_mode_te_gpio>;
 	pinctrl-1 = <&mtkfb_pins_mode_te_te>;
 	pinctrl-2 = <&mtkfb_pins_lcm_reset0>;
@@ -987,7 +1006,7 @@
 		};
 	};
 	
-	mtkfb_pins_lcd_bias_enp1: lcd_bias_enp1_gpio {
+	mtkfb_pins_lcd_bias_enp1: lcd_bias_enp_gpio_high {
 		pins_cmd_dat {
 			pins = <PINMUX_GPIO87__FUNC_GPIO87>;
 			slew-rate = <1>;
@@ -995,7 +1014,7 @@
 		};
 	};
 
-	mtkfb_pins_lcd_bias_enp0: lcd_bias_enp0_gpio {
+	mtkfb_pins_lcd_bias_enp0: lcd_bias_enp_gpio_low {
 		pins_cmd_dat {
 			pins = <PINMUX_GPIO87__FUNC_GPIO87>;
 			slew-rate = <1>;
@@ -1003,7 +1022,7 @@
 		};
 	};
 	
-	mtkfb_pins_lcd_pwr_en1: lcd_pwr_en1_gpio { 
+	mtkfb_pins_lcd_pwr_en1: lcd_pwr_en_gpio_high { 
 		pins_cmd_dat {
 			pins = <PINMUX_GPIO45__FUNC_GPIO45>;
 			slew-rate = <1>;
@@ -1011,7 +1030,7 @@
 		};
 	};
 	
-	mtkfb_pins_lcd_pwr_en0: lcd_pwr_en0_gpio { 
+	mtkfb_pins_lcd_pwr_en0: lcd_pwr_en_gpio_low { 
 		pins_cmd_dat {
 			pins = <PINMUX_GPIO45__FUNC_GPIO45>;
 			slew-rate = <1>;
@@ -1019,7 +1038,7 @@
 		};
 	};
 	
-	mtkfb_pins_lcd_bias_enn1: lcd_bias_enn1_gpio {
+	mtkfb_pins_lcd_bias_enn1: lcd_bias_enn_gpio_high {
 		pins_cmd_dat {
 			pins = <PINMUX_GPIO108__FUNC_GPIO108>;
 			slew-rate = <1>;
@@ -1027,7 +1046,7 @@
 		};
     };
 
-	mtkfb_pins_lcd_bias_enn0: lcd_bias_enn0_gpio {
+	mtkfb_pins_lcd_bias_enn0: lcd_bias_enn_gpio_low {
 		pins_cmd_dat {
 			pins = <PINMUX_GPIO108__FUNC_GPIO108>;
 			slew-rate = <1>;
@@ -1035,7 +1054,7 @@
 		};
 	};
 	
-	mtkfb_pins_lcd_backlight_en1: lcd_backlight_en1_gpio { 
+	mtkfb_pins_lcd_backlight_en1: lcd_backlight_en_gpio_high { 
 		pins_cmd_dat {
 			pins = <PINMUX_GPIO50__FUNC_GPIO50>;
 			slew-rate = <1>;
@@ -1043,7 +1062,7 @@
 		};
 	};
 
-	mtkfb_pins_lcd_backlight_en0: lcd_backlight_en0_gpio { 
+	mtkfb_pins_lcd_backlight_en0: lcd_backlight_en_gpio_low { 
 		pins_cmd_dat {
 			pins = <PINMUX_GPIO50__FUNC_GPIO50>;
 			slew-rate = <1>;
@@ -1693,5 +1712,37 @@
 	/* DA9214 GPIO Settings -End */
 };
 /* DA9214 GPIO End */
+
+/* Button Backlight leds RN4x Start */
+&leds {
+	compatible = "mediatek,leds";
+	pinctrl-names = "default", "button_backlight_output0", "button_backlight_output1";
+	pinctrl-0 = <&leds_default>;
+	pinctrl-1 = <&button_backlight0>;
+	pinctrl-2 = <&button_backlight1>;
+	status = "okay";
+};
+
+&pio {
+	leds_default: default {
+	};
+
+    button_backlight0: button_backlight_output0 {
+		pins_cmd_dat {
+			output-low;
+			pins = <PINMUX_GPIO252__FUNC_GPIO252>;
+			slew-rate = <1>;
+		};
+	};
+
+	button_backlight1: button_backlight_output1 {
+		pins_cmd_dat {
+			output-high;
+			pins = <PINMUX_GPIO252__FUNC_GPIO252>;
+			slew-rate = <1>;
+		};
+	};
+};
+/* Button Backlight leds RN4x End */
 
 #include "nikel/cust.dtsi"

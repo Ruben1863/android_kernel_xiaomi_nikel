@@ -22,7 +22,7 @@
 
 
 /*#define CONFIG_TPD_ROTATE_270*//*if use,90/270/180 move to defconfig file*/
-/*#define CONFIG_FT_AUTO_UPGRADE_SUPPORT*//*move to defconfig file*/
+#define CONFIG_FT_AUTO_UPGRADE_SUPPORT
 /*#define FT5X36_UPGADE*//*donot use it*/
 /*#define FTS_AUTO_UPGRADE*//*donot use it*/
 #define TPD_DELAY		(2*HZ/100)
@@ -32,10 +32,10 @@
 #define FT_GESTRUE_MODE_SWITCH_REG 0xD0
 #define FT_GESTRUE_GETID_REG 0xD3
 
-#define TPD_RES_X		800
+#define TPD_RES_X		720
 #define TPD_RES_Y		1280
 
-#define CONFIG_TPD_HAVE_CALIBRATION
+//#define CONFIG_TPD_HAVE_CALIBRATION
 /* #define TPD_CALIBRATION_MATRIX	{962, 0, 0, 0, 1600, 0, 0, 0}; */
 
 #define TPD_CALIBRATION_MATRIX_ROTATION_NORMAL  {-4096, 0, 800*4096, 0, -4096, 1280*4096, 0, 0}
@@ -134,13 +134,12 @@ extern void tpd_button(unsigned int x, unsigned int y, unsigned int down);
 #ifdef CONFIG_CUST_FTS_APK_DEBUG
 extern int ft_rw_iic_drv_init(struct i2c_client *client);
 extern void  ft_rw_iic_drv_exit(void);
+int ft5x0x_create_apk_debug_channel(struct i2c_client * client);
 #endif
 
 #ifdef CONFIG_FT_AUTO_UPGRADE_SUPPORT
-extern int tpd_auto_upgrade(struct i2c_client *client);
-#ifdef CONFIG_MTK_I2C_EXTENSION
 extern u8 *tpd_i2c_dma_va;
 extern dma_addr_t tpd_i2c_dma_pa;
-#endif				/* CONFIG_MTK_I2C_EXTENSION */
+extern int tpd_auto_upgrade(struct i2c_client *client);
 #endif
 #endif /* TOUCHPANEL_H__ */

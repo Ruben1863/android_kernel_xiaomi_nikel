@@ -4,6 +4,7 @@
 =========================================================================
 * Working:
 	* LCM (For now just nt35532_fhd_boe_vdo_lcm)
+	* Touch (FT5346)
 	* Boot
 	* MTP
 	* ADB

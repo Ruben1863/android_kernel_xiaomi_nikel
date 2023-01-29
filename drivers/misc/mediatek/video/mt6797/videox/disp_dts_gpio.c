@@ -24,14 +24,14 @@ static const char *this_state_name[DTS_GPIO_STATE_MAX] = {
 	"mode_te_te",
 	"lcm_rst_out0_gpio",
 	"lcm_rst_out1_gpio",
-	"lcd_bias_enp1_gpio",
-	"lcd_bias_enp0_gpio",
-	"lcd_pwr_en1_gpio",
-	"lcd_pwr_en0_gpio",
-	"lcd_bias_enn1_gpio",
-	"lcd_bias_enn0_gpio",
-	"lcd_backlight_en1_gpio",
-	"lcd_backlight_en0_gpio"
+	"lcd_bias_enp_gpio_high",
+	"lcd_bias_enp_gpio_low",
+	"lcd_pwr_en_gpio_high",
+	"lcd_pwr_en_gpio_low",
+	"lcd_bias_enn_gpio_high",
+	"lcd_bias_enn_gpio_low",
+	"lcd_backlight_en_gpio_high",
+	"lcd_backlight_en_gpio_low"
 };
 
 /* pinctrl implementation */

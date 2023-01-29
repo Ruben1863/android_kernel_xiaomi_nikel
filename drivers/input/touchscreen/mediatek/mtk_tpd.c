@@ -135,6 +135,21 @@ void tpd_gpio_output(int pin, int level)
 	}
 	mutex_unlock(&tpd_set_gpio_mutex);
 }
+
+// rn4x
+struct pinctrl_state *en_reg_output0, *en_reg_output1;
+
+void tpd_gpio_enable_regulator_output(int en)
+{
+	mutex_lock(&tpd_set_gpio_mutex);
+	if (en)
+		pinctrl_select_state(pinctrl1, en_reg_output1);
+	else
+		pinctrl_select_state(pinctrl1, en_reg_output0);
+	mutex_unlock(&tpd_set_gpio_mutex);
+}
+// end rn4x
+
 int tpd_get_gpio_info(struct platform_device *pdev)
 {
 	int ret;
@@ -181,6 +196,20 @@ int tpd_get_gpio_info(struct platform_device *pdev)
 		dev_err(&pdev->dev, "fwq Cannot find touch pinctrl state_rst_output1!\n");
 		return ret;
 	}
+	// rn4x
+	en_reg_output0 = pinctrl_lookup_state(pinctrl1, "state_enable_regulator_output0");
+	if (IS_ERR(en_reg_output0)) {
+		ret = PTR_ERR(en_reg_output0);
+		dev_err(&pdev->dev, "fwq Cannot find touch pinctrl state_enable_regulator_output0!\n");
+		return ret;
+	}
+	en_reg_output1 = pinctrl_lookup_state(pinctrl1, "state_enable_regulator_output1");
+	if (IS_ERR(en_reg_output1)) {
+		ret = PTR_ERR(en_reg_output1);
+		dev_err(&pdev->dev, "fwq Cannot find touch pinctrl state_enable_regulator_output1!\n");
+		return ret;
+	}
+	// end rn4x
 	TPD_DEBUG("[tpd%d] mt_tpd_pinctrl----------\n", pdev->id);
 	return 0;
 }

@@ -4237,6 +4237,11 @@
 		compatible = "mediatek,lct_devinfo";
 	};
 	/*shaohui add end*/
+
+    /* RN4x */
+	leds: leds@0 {
+		compatible = "mediatek,leds";
+	};
 };
 
 #include "nikel/cust.dtsi"

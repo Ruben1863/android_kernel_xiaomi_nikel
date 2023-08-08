@@ -56,6 +56,8 @@
 #include <mt-plat/mt_usb2jtag.h>
 #endif
 
+int FG_charging_type = CHARGER_UNKNOWN; // Add for rn4x
+
 /* ============================================================ // */
 /* extern function */
 /* ============================================================ // */
@@ -330,7 +332,7 @@ int hw_charging_get_charger_type(void)
 
     /********* Finally setting *******************************/
 	hw_bc11_done();
-
+    FG_charging_type = CHR_Type_num;
 	return CHR_Type_num;
 #endif
 }

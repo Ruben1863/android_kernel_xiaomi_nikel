@@ -95,6 +95,14 @@
 #if defined(CONFIG_MTK_PUMP_EXPRESS_PLUS_SUPPORT)
 #include <mach/mt_pe.h>
 #endif
+
+extern int g_cw2015_capacity; // Add for rn4x
+extern int g_cw2015_vol; // Add for rn4x
+
+int FG_charging_status = 0; // Add for rn4x
+
+int Charger_enable_Flag = 1; // Add for rn4x
+
 /* ////////////////////////////////////////////////////////////////////////////// */
 /* Battery Logging Entry */
 /* ////////////////////////////////////////////////////////////////////////////// */
@@ -152,8 +160,6 @@ kal_bool g_charging_full_reset_bat_meter = KAL_FALSE;
 int g_platform_boot_mode = 0;
 struct timespec g_bat_time_before_sleep;
 int g_smartbook_update = 0;
-
-//int FG_charging_status = 0; // rn4x
 
 #if defined(CONFIG_MTK_DUAL_INPUT_CHARGER_SUPPORT)
 kal_bool g_vcdt_irq_delay_flag = 0;
@@ -1485,6 +1491,28 @@ static ssize_t store_FG_Battery_CurrentConsumption(struct device *dev,
 static DEVICE_ATTR(FG_Battery_CurrentConsumption, 0664, show_FG_Battery_CurrentConsumption,
 		   store_FG_Battery_CurrentConsumption);
 
+// RN4X
+static ssize_t show_ChargerEnable(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	return sprintf(buf, "%u\n", Charger_enable_Flag);
+}
+
+static ssize_t store_ChargerEnable(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
+{
+	int charger_enable=0;
+
+	sscanf(buf, "%u", &charger_enable);
+
+	if(charger_enable <= 0)
+		Charger_enable_Flag = 0;
+	else
+		Charger_enable_Flag = 1;
+
+	return size;
+}
+
+static DEVICE_ATTR(ChargerEnable, 0664, show_ChargerEnable, store_ChargerEnable);
+
 /* ///////////////////////////////////////////////////////////////////////////////////////// */
 /* // Create File For EM : FG_SW_CoulombCounter */
 /* ///////////////////////////////////////////////////////////////////////////////////////// */
@@ -1624,7 +1652,7 @@ static DEVICE_ATTR(Pump_Express, 0664, show_Pump_Express, store_Pump_Express);
 
 static void mt_battery_update_EM(struct battery_data *bat_data)
 {
-	bat_data->BAT_CAPACITY = BMT_status.UI_SOC;
+	bat_data->BAT_CAPACITY = g_cw2015_capacity; // Add for rn4x
 	bat_data->BAT_TemperatureR = BMT_status.temperatureR;	/* API */
 	bat_data->BAT_TempBattVoltage = BMT_status.temperatureV;	/* API */
 	bat_data->BAT_InstatVolt = BMT_status.bat_vol;	/* VBAT */
@@ -2281,7 +2309,7 @@ void mt_battery_GetBatteryData(void)
 	unsigned int bat_vol, charger_vol, Vsense, ZCV;
 	signed int ICharging, temperature, temperatureR, temperatureV, SOC;
 	static signed int bat_sum = 0, icharging_sum = 0;//, temperature_sum;
-	static signed int batteryVoltageBuffer[BATTERY_AVERAGE_SIZE];
+    static signed int batteryVoltageBuffer[BATTERY_AVERAGE_SIZE];
 	static signed int batteryCurrentBuffer[BATTERY_AVERAGE_SIZE];
 	#if defined(USER_BUILD_KERNEL)
 	static signed int batteryTempBuffer[BATTERY_AVERAGE_SIZE];
@@ -2289,15 +2317,13 @@ void mt_battery_GetBatteryData(void)
 	#endif
 	static unsigned char batteryIndex = 0;
 	static signed int previous_SOC = -1;
+    int battery_test_status = 0; // Wtf is this ximi?
 
+    FG_charging_status = upmu_is_chr_det(); // Add for rn4x
 	bat_vol = battery_meter_get_battery_voltage(KAL_TRUE);
 	Vsense = battery_meter_get_VSense();
 	if (upmu_is_chr_det() == KAL_TRUE)
-		#ifdef CONFIG_MTK_BQ25896_SUPPORT
-		ICharging = get_bat_charging_current_level();//[FAQ17629]使用switch charging后ICharging读取不准问题
-		#else
-		ICharging = battery_meter_get_charging_current();
-		#endif
+		ICharging = battery_meter_get_battery_current();
 	else
 		ICharging = 0;
 
@@ -2327,7 +2353,6 @@ void mt_battery_GetBatteryData(void)
 	    mt_battery_average_method(BATTERY_AVG_CURRENT, &batteryCurrentBuffer[0], ICharging,
 				      &icharging_sum, batteryIndex);
 
-
 	if (previous_SOC == -1 && bat_vol <= batt_cust_data.v_0percent_tracking) {
 		battery_log(BAT_LOG_CRTI,
 			    "battery voltage too low, use ZCV to init average data.\n");
@@ -2339,7 +2364,11 @@ void mt_battery_GetBatteryData(void)
 		    mt_battery_average_method(BATTERY_AVG_VOLT, &batteryVoltageBuffer[0], bat_vol,
 					      &bat_sum, batteryIndex);
 	}
-	#if defined(USER_BUILD_KERNEL)
+
+    BMT_status.bat_vol = g_cw2015_vol; // Add for rn4x
+    battery_log(BAT_LOG_CRTI, "g_cw2015_vol = %d\n", g_cw2015_vol);
+
+#if defined(USER_BUILD_KERNEL)
 
 	if (battery_cmd_thermal_test_mode == 1) {
 		battery_log(BAT_LOG_CRTI, "test mode , battery temperature is fixed.\n");
@@ -2349,7 +2378,7 @@ void mt_battery_GetBatteryData(void)
 					      &temperature_sum, batteryIndex);
 	}
  #else
- 			BMT_status.temperature = 30;
+ 	BMT_status.temperature = 30;
  #endif
 
 	BMT_status.Vsense = Vsense;
@@ -2372,9 +2401,20 @@ void mt_battery_GetBatteryData(void)
 	if (batteryIndex >= BATTERY_AVERAGE_SIZE)
 		batteryIndex = 0;
 
-
 	if (g_battery_soc_ready == KAL_FALSE)
 		g_battery_soc_ready = KAL_TRUE;
+
+    if (battery_test_status <= 0) {
+        Charger_enable_Flag = 1;
+    } else {
+        if (SOC > 79) {
+            Charger_enable_Flag = 0;
+        } else if (SOC <= 50) {
+            Charger_enable_Flag = 1;
+        }
+    }
+
+    printk("rn4x battery_test_status=%d, Charger_enable_Flag=%d\n", battery_test_status, Charger_enable_Flag);
 
 	battery_log(BAT_LOG_CRTI,
 		    "AvgVbat=(%d),bat_vol=(%d),AvgI=(%d),I=(%d),VChr=(%d),AvgT=(%d),T=(%d),pre_SOC=(%d),SOC=(%d),ZCV=(%d)\n",
@@ -2383,7 +2423,6 @@ void mt_battery_GetBatteryData(void)
 		    previous_SOC, BMT_status.SOC, BMT_status.ZCV);
 
 }
-
 
 static PMU_STATUS mt_battery_CheckBatteryTemp(void)
 {
@@ -3400,11 +3439,8 @@ static const struct file_operations adc_cali_fops = {
 };
 
 
-void check_battery_exist(void)
+void check_battery_exist(void) // Edited for rn4x
 {
-#if defined(CONFIG_DIS_CHECK_BATTERY)
-	battery_log(BAT_LOG_CRTI, "[BATTERY] Disable check battery exist.\n");
-#else
 	unsigned int baton_count = 0;
 	unsigned int charging_enable = KAL_FALSE;
 	unsigned int battery_status;
@@ -3435,7 +3471,6 @@ void check_battery_exist(void)
 			#endif
 		}
 	}
-#endif
 }
 
 
@@ -4303,6 +4338,7 @@ static int battery_probe(struct platform_device *dev)
 		ret_device_file = device_create_file(&(dev->dev), &dev_attr_V_0Percent_Tracking);
 
 		ret_device_file = device_create_file(&(dev->dev), &dev_attr_Charger_Type);
+		ret_device_file = device_create_file(&(dev->dev), &dev_attr_ChargerEnable);
 #if defined(CONFIG_MTK_PUMP_EXPRESS_SUPPORT) || defined(CONFIG_MTK_PUMP_EXPRESS_PLUS_SUPPORT)
 		ret_device_file = device_create_file(&(dev->dev), &dev_attr_Pump_Express);
 #endif

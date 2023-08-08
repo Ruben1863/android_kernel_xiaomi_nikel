@@ -65,6 +65,7 @@
 
 #include <mt-plat/upmu_common.h>
 
+extern int g_cw2015_capacity; // Add for rn4x
 
 /* ============================================================ // */
 /* define */
@@ -2466,17 +2467,9 @@ signed int battery_meter_get_charger_voltage(void)
 	return val;
 }
 
-signed int battery_meter_get_battery_percentage(void)
+signed int battery_meter_get_battery_percentage(void) // Edited for rn4x
 {
-#if defined(CONFIG_POWER_EXT)
-	return 50;
-#else
-
-#if defined(SOC_BY_HW_FG)
-	return gFG_capacity_by_c;	/* hw fg, //return gfg_percent_check_point; // voltage mode */
-#endif
-#endif
-	return gFG_capacity_by_c;
+    return g_cw2015_capacity;
 }
 
 

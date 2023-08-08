@@ -54,6 +54,7 @@
 
 #include <mt-plat/upmu_common.h>
 
+extern int g_cw2015_capacity; // Add for rn4x
 
 /* ============================================================ // */
 /* define */
@@ -3525,52 +3526,9 @@ signed int battery_meter_set_columb_interrupt(unsigned int val)
 }
 #endif				/* #if defined(FG_BAT_INT) */
 
-signed int battery_meter_get_battery_percentage(void)
+signed int battery_meter_get_battery_percentage(void) // Edited for rn4x
 {
-#if defined(CONFIG_POWER_EXT)
-	return 50;
-#else
-
-	if (bat_is_charger_exist() == KAL_FALSE)
-		fg_qmax_update_for_aging_flag = 1;
-
-#if defined(SOC_BY_AUXADC)
-	return auxadc_algo_run();
-#endif
-
-#if defined(SOC_BY_HW_FG)
-	if (g_auxadc_solution == 1)
-		return auxadc_algo_run();
-/*else {*/
-		fgauge_algo_run();
-#if !defined(CUST_CAPACITY_OCV2CV_TRANSFORM)
-		return gFG_capacity_by_c;	/* hw fg, //return gfg_percent_check_point; // voltage mode */
-#else
-		/* We keep gFG_capacity_by_c as capacity before compensation */
-		/* Compensated capacity is returned for UI SOC tracking */
-		return 100 - battery_meter_trans_battery_percentage(100 - gFG_capacity_by_c);
-#endif
-	/*}*/
-#endif
-
-#if defined(SOC_BY_SW_FG)
-	oam_run();
-#if !defined(CUST_CAPACITY_OCV2CV_TRANSFORM)
-#if (OAM_D5 == 1)
-	return 100 - oam_d_5;
-#else
-	return 100 - oam_d_2;
-#endif
-#else
-#if (OAM_D5 == 1)
-	return 100 - battery_meter_trans_battery_percentage(oam_d_5);
-#else
-	return 100 - battery_meter_trans_battery_percentage(oam_d_2);
-#endif
-#endif
-#endif
-
-#endif
+    return g_cw2015_capacity;
 }
 
 

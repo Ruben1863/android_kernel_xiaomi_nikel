@@ -396,6 +396,11 @@
 		reg = <0x5f>;
 		status = "okay";
 	};
+	cw2015@62 {
+		compatible = "mediatek,cw2015";
+		reg = <0x62>;
+		status = "okay";
+	};
 };
 
 &i2c2 {

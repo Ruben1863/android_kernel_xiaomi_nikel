@@ -794,7 +794,7 @@ int fts_read_reg(struct i2c_client *client, u8 regaddr, u8 *regvalue)
 }
 
 // rn4x
-int FG_charging_status = 0;
+extern int FG_charging_status;
 int charging_flag = 0;
 
 static int touch_event_handler(void *unused)
@@ -1286,7 +1286,7 @@ static void tpd_resume(struct device *h)
 	fts_write_reg(fts_i2c_client, 0xD0, 2);
 	fts_release_all_finger();
 	enable_irq(touch_irq);
-	FG_charging_status = charging_flag == 0;
+	charging_flag = FG_charging_status == 0;
 	tfs_tp_set_cover_mode();
 }
 

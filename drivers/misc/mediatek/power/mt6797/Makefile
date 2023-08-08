@@ -35,7 +35,7 @@ else
                obj-$(CONFIG_MTK_SMART_BATTERY) += ncp1854.o charging_hw_ncp1854.o
           else
                ifeq ($(CONFIG_MTK_BQ24296_SUPPORT),y)
-                    obj-$(CONFIG_MTK_SMART_BATTERY) += lct_bq24296.o lct_charging_hw_bq24296.o
+                    obj-$(CONFIG_MTK_SMART_BATTERY) += rn4x_bq24296.o rn4x_charging_hw_bq24296.o
                else
                     ifeq ($(CONFIG_MTK_FAN5405_SUPPORT),y)
                         obj-$(CONFIG_MTK_SMART_BATTERY) += fan5405.o charging_hw_fan5405.o

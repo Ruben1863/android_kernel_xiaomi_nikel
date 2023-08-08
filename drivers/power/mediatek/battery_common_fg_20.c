@@ -98,6 +98,12 @@
 #if defined(CONFIG_MTK_PUMP_EXPRESS_PLUS_SUPPORT)
 #include <mach/mt_pe.h>
 #endif
+
+extern int g_cw2015_capacity; // Add for rn4x
+extern int g_cw2015_vol; // Add for rn4x
+
+int FG_charging_status = 0; // Add for rn4x
+
 /* ////////////////////////////////////////////////////////////////////////////// */
 /* Battery Logging Entry */
 /* ////////////////////////////////////////////////////////////////////////////// */
@@ -1640,7 +1646,7 @@ static DEVICE_ATTR(Pump_Express, 0664, show_Pump_Express, store_Pump_Express);
 
 static void mt_battery_update_EM(struct battery_data *bat_data)
 {
-	bat_data->BAT_CAPACITY = BMT_status.UI_SOC2;
+	bat_data->BAT_CAPACITY = g_cw2015_capacity; // Add for rn4x
 	bat_data->BAT_TemperatureR = BMT_status.temperatureR;	/* API */
 	bat_data->BAT_TempBattVoltage = BMT_status.temperatureV;	/* API */
 	bat_data->BAT_InstatVolt = BMT_status.bat_vol;	/* VBAT */
@@ -2089,15 +2095,15 @@ void mt_battery_GetBatteryData(void)
 {
 	unsigned int bat_vol, charger_vol, Vsense, ZCV;
 	signed int ICharging, temperature, temperatureR, temperatureV;
-	static signed int bat_sum, icharging_sum;
-	static signed int batteryVoltageBuffer[BATTERY_AVERAGE_SIZE];
+	static signed int icharging_sum;
 	static signed int batteryCurrentBuffer[BATTERY_AVERAGE_SIZE];
 	#if defined(USER_BUILD_KERNEL)
 	static signed int batteryTempBuffer[BATTERY_AVERAGE_SIZE];
 	static signed int temperature_sum;
 	#endif
 	static unsigned char batteryIndex = 0xff;
-	static signed int previous_SOC = -1;
+
+    FG_charging_status = upmu_is_chr_det(); // Add for rn4x
 
 	if (batteryIndex == 0xff)
 		batteryIndex = 0;
@@ -2120,27 +2126,9 @@ void mt_battery_GetBatteryData(void)
 	    mt_battery_average_method(BATTERY_AVG_CURRENT, &batteryCurrentBuffer[0], ICharging,
 				      &icharging_sum, batteryIndex);
 
-	if (previous_SOC == -1 && bat_vol <= batt_cust_data.v_0percent_tracking) {
-		previous_SOC = 0;
-		if (ZCV != 0) {
-			battery_log(BAT_LOG_CRTI,
-				    "battery voltage too low, use ZCV to init average data.\n");
-			BMT_status.bat_vol =
-			    mt_battery_average_method(BATTERY_AVG_VOLT, &batteryVoltageBuffer[0],
-						      ZCV, &bat_sum, batteryIndex);
-		} else {
-			battery_log(BAT_LOG_CRTI,
-				    "battery voltage too low, use V_0PERCENT_TRACKING + 100 to init average data.\n");
-			BMT_status.bat_vol =
-			    mt_battery_average_method(BATTERY_AVG_VOLT, &batteryVoltageBuffer[0],
-						      batt_cust_data.v_0percent_tracking + 100, &bat_sum,
-						      batteryIndex);
-		}
-	} else {
-		BMT_status.bat_vol =
-		    mt_battery_average_method(BATTERY_AVG_VOLT, &batteryVoltageBuffer[0], bat_vol,
-					      &bat_sum, batteryIndex);
-	}
+    BMT_status.bat_vol = g_cw2015_vol; // Add for rn4x
+    battery_log(BAT_LOG_CRTI, "g_cw2015_vol = %d\n", g_cw2015_vol);
+
 	#if defined(USER_BUILD_KERNEL)
 	BMT_status.temperature =
 	    mt_battery_average_method(BATTERY_AVG_TEMP, &batteryTempBuffer[0], temperature,
@@ -3224,11 +3212,8 @@ static const struct file_operations adc_cali_fops = {
 	.release = adc_cali_release,
 };
 
-void check_battery_exist(void)
+void check_battery_exist(void) // Edited for rn4x
 {
-#if defined(CONFIG_DIS_CHECK_BATTERY)
-	battery_log(BAT_LOG_CRTI, "[BATTERY] Disable check battery exist.\n");
-#else
 	unsigned int baton_count = 0;
 	unsigned int charging_enable = KAL_FALSE;
 	unsigned int battery_status;
@@ -3259,7 +3244,6 @@ void check_battery_exist(void)
 			#endif
 		}
 	}
-#endif
 }
 
 

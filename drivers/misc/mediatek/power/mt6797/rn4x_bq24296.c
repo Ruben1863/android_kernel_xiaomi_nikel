@@ -28,7 +28,7 @@
 #include <linux/of_address.h>
 #endif
 #include <mt-plat/charging.h>
-#include "lct_bq24296.h"
+#include "rn4x_bq24296.h"
 
 /**********************************************************
   *
@@ -80,60 +80,84 @@ int g_bq24296_hw_exist = 0;
   *   [I2C Function For Read/Write bq24296]
   *
   *********************************************************/
-int bq24296_read_byte(unsigned char cmd, unsigned char *returnData)
+
+unsigned int bq24296_read_byte(unsigned char cmd, unsigned char *returnData)
 {
-	char cmd_buf[1] = { 0x00 };
-	char readData = 0;
-	int ret = 0;
+	unsigned char xfers = 2;
+	int ret, retries = 1;
 
 	mutex_lock(&bq24296_i2c_access);
 
-	/* new_client->addr = ((new_client->addr) & I2C_MASK_FLAG) | I2C_WR_FLAG; */
-	new_client->ext_flag =
-	    ((new_client->ext_flag) & I2C_MASK_FLAG) | I2C_WR_FLAG | I2C_DIRECTION_FLAG;
+	do {
+		struct i2c_msg msgs[2] = {
+			{
+				.addr = new_client->addr,
+				.flags = 0,
+				.len = 1,
+				.buf = &cmd,
+			},
+			{
 
-	cmd_buf[0] = cmd;
-	ret = i2c_master_send(new_client, &cmd_buf[0], (1 << 8 | 1));
-	if (ret < 0) {
-		/* new_client->addr = new_client->addr & I2C_MASK_FLAG; */
-		new_client->ext_flag = 0;
+				.addr = new_client->addr,
+				.flags = I2C_M_RD,
+				.len = 1,
+				.buf = returnData,
+			}
+		};
 
-		mutex_unlock(&bq24296_i2c_access);
-		return 0;
-	}
+		/*
+		 * Avoid sending the segment addr to not upset non-compliant
+		 * DDC monitors.
+		 */
+		ret = i2c_transfer(new_client->adapter, msgs, xfers);
 
-	readData = cmd_buf[0];
-	*returnData = readData;
-
-	/* new_client->addr = new_client->addr & I2C_MASK_FLAG; */
-	new_client->ext_flag = 0;
+		if (ret == -ENXIO) {
+			battery_log(BAT_LOG_CRTI, "skipping non-existent adapter %s\n", new_client->adapter->name);
+			break;
+		}
+	} while (ret != xfers && --retries);
 
 	mutex_unlock(&bq24296_i2c_access);
-	return 1;
+
+	return ret == xfers ? 1 : -1;
 }
 
-int bq24296_write_byte(unsigned char cmd, unsigned char writeData)
+unsigned int bq24296_write_byte(unsigned char cmd, unsigned char writeData)
 {
-	char write_data[2] = { 0 };
-	int ret = 0;
+	unsigned char xfers = 1;
+	int ret, retries = 1;
+	unsigned char buf[8];
 
 	mutex_lock(&bq24296_i2c_access);
 
-	write_data[0] = cmd;
-	write_data[1] = writeData;
+	buf[0] = cmd;
+	memcpy(&buf[1], &writeData, 1);
 
-	new_client->ext_flag = ((new_client->ext_flag) & I2C_MASK_FLAG) | I2C_DIRECTION_FLAG;
+	do {
+		struct i2c_msg msgs[1] = {
+			{
+				.addr = new_client->addr,
+				.flags = 0,
+				.len = 1 + 1,
+				.buf = buf,
+			},
+		};
 
-	ret = i2c_master_send(new_client, write_data, 2);
-	if (ret < 0) {
-		new_client->ext_flag = 0;
-		mutex_unlock(&bq24296_i2c_access);
-		return 0;
-	}
+		/*
+		 * Avoid sending the segment addr to not upset non-compliant
+		 * DDC monitors.
+		 */
+		ret = i2c_transfer(new_client->adapter, msgs, xfers);
 
-	new_client->ext_flag = 0;
+		if (ret == -ENXIO) {
+			battery_log(BAT_LOG_CRTI, "skipping non-existent adapter %s\n", new_client->adapter->name);
+			break;
+		}
+	} while (ret != xfers && --retries);
+
 	mutex_unlock(&bq24296_i2c_access);
-	return 1;
+
+	return ret == xfers ? 1 : -1;
 }
 
 /**********************************************************
@@ -570,7 +594,7 @@ void bq24296_hw_component_detect(void)
 	unsigned int ret = 0;
 	unsigned char val = 0;
 
-	ret = bq24296_read_interface(0x0A, &val, 0xFF, 0x0);
+	ret = bq24296_read_interface(0x0A, &val, 0x01, 0x04); // Edited for rn4x
 
 	if (val == 0)
 		g_bq24296_hw_exist = 0;
@@ -617,6 +641,12 @@ static int bq24296_driver_probe(struct i2c_client *client, const struct i2c_devi
 
 	/* --------------------- */
 	bq24296_hw_component_detect();
+	
+	if (!g_bq24296_hw_exist) { // Add for rn4x
+		battery_log(BAT_LOG_CRTI, "[bq24296] bq24296 does not exist!");
+		return -1;
+	}
+	
 	bq24296_dump_register();
 	chargin_hw_init_done = KAL_TRUE;
 

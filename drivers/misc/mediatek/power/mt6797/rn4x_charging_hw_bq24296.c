@@ -20,7 +20,9 @@
 #include <mt-plat/battery_common.h>
 #include <mach/mt_charging.h>
 #include <mach/mt_pmic.h>
-#include "lct_bq24296.h"
+#include "rn4x_bq24296.h"
+
+extern int Charger_enable_Flag; // rn4x
 
 /* ============================================================ // */
 /* Define */
@@ -208,8 +210,8 @@ static unsigned int charging_hw_init(void *data)
 	bq24296_set_wdt_rst(0x1);	/* Kick watchdog */
 	bq24296_set_sys_min(0x5);	/* Minimum system voltage 3.5V */
 	bq24296_set_iprechg(0x3);	/* Precharge current 512mA */
-	bq24296_set_iterm(0x0);	/* Termination current 128mA */
-
+	bq24296_set_iterm(0x1);	/* Termination current 128mA */ // Edited for rn4x
+	bq24296_set_otg_config(0x00); // Add for rn4x
 	bq24296_set_batlowv(0x1);	/* BATLOWV 3.0V */
 	bq24296_set_vrechg(0x0);	/* VRECHG 0.1V (4.108V) */
 	bq24296_set_en_term(0x1);	/* Enable termination */
@@ -234,42 +236,38 @@ static unsigned int charging_dump_register(void *data)
 	return STATUS_OK;
 }
 
-static unsigned int charging_enable(void *data)
+static unsigned int charging_enable(void *data) // Edited for rn4x
 {
 	unsigned int status = STATUS_OK;
 	unsigned int enable = *(unsigned int *) (data);
 	unsigned int bootmode = 0;
 
 	if (KAL_TRUE == enable) {
-		bq24296_set_en_hiz(0x0);
-		bq24296_set_chg_config(0x1);	/* charger enable */
+        if (Charger_enable_Flag == 1) {
+          bq24296_set_en_hiz(0x0);
+          bq24296_set_chg_config(0x1);
+          printk("[charging_enable] charger enable, Charger_enable_Flag=%d\n", Charger_enable_Flag);
+        } else {
+          bq24296_set_en_hiz(0x1);
+          bq24296_set_chg_config(0x0);
+          printk("[charging_enable] charger disable, Charger_enable_Flag=%d\n", Charger_enable_Flag);
+        }
 	} else {
-#if defined(CONFIG_USB_MTK_HDRC_HCD)
-		if (mt_usb_is_device()) {
-#endif
-			bq24296_set_chg_config(0x0);
-			if (charging_get_error_state()) {
-				battery_log(BAT_LOG_CRTI, "[charging_enable] bq24296_set_en_hiz(0x1)\n");
-				bq24296_set_en_hiz(0x1);	/* disable power path */
-			}
-#if defined(CONFIG_USB_MTK_HDRC_HCD)
-		}
-#endif
-
+		bq24296_set_chg_config(0x0);
+		bq24296_set_en_hiz(0x0);
+		
+		if (charging_get_error_state())
+			bq24296_set_en_hiz(0x1);
+		
 		bootmode = get_boot_mode();
 		if ((bootmode == META_BOOT) || (bootmode == ADVMETA_BOOT))
-			bq24296_set_en_hiz(0x1);
-
-#if defined(CONFIG_MTK_DUAL_INPUT_CHARGER_SUPPORT)
-		bq24296_set_chg_config(0x0);
-		bq24296_set_en_hiz(0x1);	/* disable power path */
-#endif
+			bq24296_set_iinlim(0x0);
 	}
-
+	
 	return status;
 }
 
-static unsigned int charging_set_cv_voltage(void *data)
+static unsigned int charging_set_cv_voltage(void *data) // Edited for rn4x
 {
 	unsigned int status = STATUS_OK;
 	unsigned int array_size;
@@ -278,11 +276,6 @@ static unsigned int charging_set_cv_voltage(void *data)
 	unsigned int cv_value = *(unsigned int *) (data);
 
 	static short pre_register_value = -1;
-
-	if (batt_cust_data.high_battery_voltage_support) {
-		if (cv_value >= BATTERY_VOLT_04_300000_V)
-			cv_value = 4400000;
-	}
 
 	/* use nearest value */
 	if (BATTERY_VOLT_04_200000_V == cv_value)
@@ -538,7 +531,7 @@ static unsigned int charging_set_ta_current_pattern(void *data)
 	BATTERY_VOLTAGE_ENUM cv_voltage = BATTERY_VOLT_04_200000_V;
 
 	if (batt_cust_data.high_battery_voltage_support)
-		cv_voltage = BATTERY_VOLT_04_340000_V;
+		cv_voltage = BATTERY_VOLT_04_400000_V; // Edited for rn4x
 
 	charging_get_charging_status(&charging_status);
 	if (KAL_FALSE == charging_status) {

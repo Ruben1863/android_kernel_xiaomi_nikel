@@ -44,8 +44,8 @@
 		ranges = <0 0 0 0xffffffff>;
 
 		i2c0@11007000 {
-			bq24261@6b {
-				compatible = "bq24261";
+			bq24296@6b {
+				compatible = "bq24296";
 				reg = <0x6b>;
 			};
 

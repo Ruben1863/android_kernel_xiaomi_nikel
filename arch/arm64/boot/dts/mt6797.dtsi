@@ -4242,6 +4242,10 @@
 	leds: leds@0 {
 		compatible = "mediatek,leds";
 	};
+
+	cw2015@0 {
+		compatible = "mediatek,cw2015";
+	};
 };
 
 #include "nikel/cust.dtsi"

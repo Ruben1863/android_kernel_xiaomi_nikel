@@ -441,7 +441,7 @@ static unsigned int charging_get_battery_status(void *data)
 	battery_log(BAT_LOG_CRTI, "[charging_get_battery_status] battery exist for bring up.\n");
 #else
 	val = pmic_get_register_value(PMIC_BATON_TDET_EN);
-	battery_log(BAT_LOG_FULL, "[charging_get_battery_status] BATON_TDET_EN = %d\n", val);
+	pr_info("[charging_get_battery_status] BATON_TDET_EN = %d\n", val);
 	if (val) {
 		pmic_set_register_value(PMIC_BATON_TDET_EN, 1);
 		pmic_set_register_value(PMIC_RG_BATON_EN, 1);

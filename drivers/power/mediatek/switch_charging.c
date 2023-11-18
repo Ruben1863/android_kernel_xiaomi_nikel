@@ -66,6 +66,9 @@
 #include <mach/mt_diso.h>
 #endif
 
+#ifdef CONFIG_BATTERY_HIGH_VOLTAGE
+#undef CONFIG_BATTERY_HIGH_VOLTAGE
+#endif
 
 /* ============================================================ // */
 /* define */

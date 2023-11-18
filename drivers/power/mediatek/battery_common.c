@@ -95,6 +95,19 @@
 #if defined(CONFIG_MTK_PUMP_EXPRESS_PLUS_SUPPORT)
 #include <mach/mt_pe.h>
 #endif
+<<<<<<< Updated upstream
+=======
+
+#include <mach/cw2015_battery.h>
+
+//extern int g_cw2015_capacity; // Add for rn4x
+//extern int g_cw2015_vol; // Add for rn4x
+
+int FG_charging_status = 0; // Add for rn4x
+
+int Charger_enable_Flag = 1; // Add for rn4x
+
+>>>>>>> Stashed changes
 /* ////////////////////////////////////////////////////////////////////////////// */
 /* Battery Logging Entry */
 /* ////////////////////////////////////////////////////////////////////////////// */
@@ -686,7 +699,7 @@ static struct battery_data battery_main = {
 	.BAT_STATUS = POWER_SUPPLY_STATUS_FULL,
 	.BAT_HEALTH = POWER_SUPPLY_HEALTH_GOOD,
 	.BAT_PRESENT = 1,
-	.BAT_TECHNOLOGY = POWER_SUPPLY_TECHNOLOGY_LIPO,
+	.BAT_TECHNOLOGY = POWER_SUPPLY_TECHNOLOGY_LION,
 	.BAT_CAPACITY = 100,
 	.BAT_batt_vol = 4200,
 	.BAT_batt_temp = 22,
@@ -700,7 +713,7 @@ static struct battery_data battery_main = {
 	.BAT_STATUS = POWER_SUPPLY_STATUS_NOT_CHARGING,
 	.BAT_HEALTH = POWER_SUPPLY_HEALTH_GOOD,
 	.BAT_PRESENT = 1,
-	.BAT_TECHNOLOGY = POWER_SUPPLY_TECHNOLOGY_LIPO,
+	.BAT_TECHNOLOGY = POWER_SUPPLY_TECHNOLOGY_LION,
 #if defined(CONFIG_MTK_PUMP_EXPRESS_SUPPORT) || defined(CONFIG_MTK_PUMP_EXPRESS_PLUS_SUPPORT)
 	.BAT_CAPACITY = -1,
 #else
@@ -1854,7 +1867,7 @@ static void battery_update(struct battery_data *bat_data)
 	struct power_supply *bat_psy = &bat_data->psy;
 	kal_bool resetBatteryMeter = KAL_FALSE;
 
-	bat_data->BAT_TECHNOLOGY = POWER_SUPPLY_TECHNOLOGY_LIPO;
+	bat_data->BAT_TECHNOLOGY = POWER_SUPPLY_TECHNOLOGY_LION;
 	bat_data->BAT_HEALTH = POWER_SUPPLY_HEALTH_GOOD;
 	bat_data->BAT_batt_vol = BMT_status.bat_vol;
 	bat_data->BAT_batt_temp = BMT_status.temperature * 10;
@@ -2832,7 +2845,7 @@ CHARGER_TYPE mt_get_charger_type(void)
 
 #define MAX_RETRY_TIME 50
 
-static void mt_battery_charger_detect_check(void)
+static void mt_battery_charger_detect_check(void) // Edited for rn4x
 {
 #ifdef CONFIG_MTK_BQ25896_SUPPORT
 /*New low power feature of MT6531: disable charger CLK without CHARIN.
@@ -2842,7 +2855,6 @@ static void mt_battery_charger_detect_check(void)
 */
 		unsigned int pwr;
 #endif
-	unsigned int i = 0;
 	if (upmu_is_chr_det() == KAL_TRUE) {
 		wake_lock(&battery_suspend_lock);
 
@@ -2865,16 +2877,6 @@ static void mt_battery_charger_detect_check(void)
 		    (DISO_data.diso_state.cur_vusb_state == DISO_ONLINE)) {
 #endif
 			mt_charger_type_detection();
-			while(BMT_status.charger_type == NONSTANDARD_CHARGER)
-			{
-			    battery_log(BAT_LOG_FULL, "retry time [%d], BMT_status.charger_type=%d\n", i, BMT_status.charger_type);
-			    msleep(200);
-			    mt_charger_type_detection();
-			    if(i++ > MAX_RETRY_TIME)
-			    {
-			        break;
-			    }
-			}
 
 			if ((BMT_status.charger_type == STANDARD_HOST)
 			    || (BMT_status.charger_type == CHARGING_HOST)) {
@@ -3136,6 +3138,7 @@ int bat_thread_kthread(void *x)
 	while (1) {
 		mutex_lock(&bat_mutex);
 
+        battery_log(BAT_LOG_CRTI, "NIKEL: chargin_hw_init_done = %d, battery_suspended = %d, fg_wake_up_bat = %d\n", chargin_hw_init_done, battery_suspended, fg_wake_up_bat);
 		if (((chargin_hw_init_done == KAL_TRUE) && (battery_suspended == KAL_FALSE))
 		    || ((chargin_hw_init_done == KAL_TRUE) && (fg_wake_up_bat == KAL_TRUE)))
 			BAT_thread();
@@ -4244,7 +4247,7 @@ static int battery_probe(struct platform_device *dev)
 		battery_main.BAT_STATUS = POWER_SUPPLY_STATUS_FULL;
 		battery_main.BAT_HEALTH = POWER_SUPPLY_HEALTH_GOOD;
 		battery_main.BAT_PRESENT = 1;
-		battery_main.BAT_TECHNOLOGY = POWER_SUPPLY_TECHNOLOGY_LIPO;
+		battery_main.BAT_TECHNOLOGY = POWER_SUPPLY_TECHNOLOGY_LION;
 		battery_main.BAT_CAPACITY = 100;
 		battery_main.BAT_batt_vol = 4200;
 		battery_main.BAT_batt_temp = 220;

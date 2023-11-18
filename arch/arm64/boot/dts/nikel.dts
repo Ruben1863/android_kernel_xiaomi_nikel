@@ -44,6 +44,7 @@
 		ranges = <0 0 0 0xffffffff>;
 
 		i2c0@11007000 {
+<<<<<<< Updated upstream
 			bq24261@6b {
 				compatible = "bq24261";
 				reg = <0x6b>;
@@ -53,6 +54,17 @@
 				compatible = "mediatek,mt6306";
 				reg = <0x64>;
 			};
+=======
+		    bq24261@6b {
+			    compatible = "bq24261";
+			    reg = <0x6b>;
+		    };
+
+		    mt6306@64 {
+			    compatible = "mediatek,mt6306";
+			    reg = <0x64>;
+		    };
+>>>>>>> Stashed changes
 		};
 		mmc0_pins_default: mmc0@default {
 			pins_cmd {

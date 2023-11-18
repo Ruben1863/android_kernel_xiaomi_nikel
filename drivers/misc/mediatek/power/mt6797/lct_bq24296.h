@@ -185,6 +185,9 @@
   *   [Extern Function]
   *
   *********************************************************/
+
+extern int g_bq24296_hw_exist;
+
 /* CON0---------------------------------------------------- */
 extern void bq24296_set_en_hiz(unsigned int val);
 extern void bq24296_set_vindpm(unsigned int val);

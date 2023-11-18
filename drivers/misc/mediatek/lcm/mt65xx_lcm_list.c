@@ -39,6 +39,9 @@ LCM_DRIVER *lcm_driver_list[] = {
 #if defined(NT35532_FHD_BOE_VDO_LCM)
 	&nt35532_fhd_boe_vdo_lcm_drv,
 #endif
+#if defined(NT35596_FHD_TIANMA_PHANTOM)
+	&nt35596_fhd_tianma_phantom_lcm_drv,
+#endif
 //end
 
 #if defined(R63419_WQHD_BOYI_VDO)

@@ -75,6 +75,8 @@
 #include <linux/proc_fs.h>
 #endif
 
+#include <rn4x_bq24296.h>
+
 #define RET_SUCCESS 0
 #define RET_FAIL 1
 
@@ -389,6 +391,7 @@ int mtk_is_hub_active(void)
 	return ret;
 }
 #endif
+#if 0
 static void mtk_enable_otg_mode(void)
 {
 #if defined(CONFIG_MTK_BQ25896_SUPPORT)
@@ -414,6 +417,7 @@ static void mtk_disable_otg_mode(void)
 	bq25898_otg_en(0x0);
 #endif
 }
+#endif
 
 static int mtk_xhci_hcd_init(void)
 {
@@ -509,7 +513,13 @@ static int mtk_xhci_driver_load(void)
 	/* for performance, fixed the interrupt moderation from 0xA0(default) to 0x30 */
 	mtk_xhci_imod_set(0x30);
 
-	mtk_enable_otg_mode();
+    if (g_bq24296_hw_exist == 1) {
+        bq24296_set_otg_config(1);
+        bq24296_set_boostv(7);
+        bq24296_set_boost_lim(1);
+        bq24296_set_en_hiz(0);
+    }
+
 	enableXhciAllPortPower(mtk_xhci);
 
 	return 0;
@@ -524,7 +534,9 @@ _err:
 
 static void mtk_xhci_disPortPower(void)
 {
-	mtk_disable_otg_mode();
+    if (g_bq24296_hw_exist == 1)
+        bq24296_set_otg_config(0);
+
 	disableXhciAllPortPower(mtk_xhci);
 }
 

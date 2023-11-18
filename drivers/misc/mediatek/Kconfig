@@ -337,4 +337,6 @@ source "drivers/misc/mediatek/lct_devinfo/Kconfig"
 endmenu
 # LCT_DEVINFO module add end
 
+source "drivers/misc/mediatek/battery_fual/Kconfig"
+
 endif

@@ -570,14 +570,19 @@ void bq24296_hw_component_detect(void)
 	unsigned int ret = 0;
 	unsigned char val = 0;
 
+<<<<<<< Updated upstream:drivers/misc/mediatek/power/mt6797/lct_bq24296.c
 	ret = bq24296_read_interface(0x0A, &val, 0xFF, 0x0);
+=======
+	//ret = bq24296_read_interface(0x0A, &val, 0x01, 0x04); // Edited for rn4x
+    ret = bq24296_read_interface(0x0A, &val, 0xFF, 0x0);
+>>>>>>> Stashed changes:drivers/misc/mediatek/power/mt6797/rn4x_bq24296.c
 
 	if (val == 0)
 		g_bq24296_hw_exist = 0;
 	else
 		g_bq24296_hw_exist = 1;
 
-	battery_log(BAT_LOG_CRTI, "[bq24296_hw_component_detect] exist=%d, Reg[0x03]=0x%x\n", g_bq24296_hw_exist, val);
+	battery_log(BAT_LOG_CRTI, "[bq24296_hw_component_detect] exist=%d, Reg[0x0A]=0x%x\n", g_bq24296_hw_exist, val);
 }
 
 int is_bq24296_exist(void)
@@ -617,6 +622,15 @@ static int bq24296_driver_probe(struct i2c_client *client, const struct i2c_devi
 
 	/* --------------------- */
 	bq24296_hw_component_detect();
+<<<<<<< Updated upstream:drivers/misc/mediatek/power/mt6797/lct_bq24296.c
+=======
+	
+	//if (!g_bq24296_hw_exist) { // Add for rn4x
+		//battery_log(BAT_LOG_CRTI, "[bq24296] bq24296 does not exist!");
+		//return -1;
+	//}
+	
+>>>>>>> Stashed changes:drivers/misc/mediatek/power/mt6797/rn4x_bq24296.c
 	bq24296_dump_register();
 	chargin_hw_init_done = KAL_TRUE;
 
@@ -709,10 +723,12 @@ static int __init bq24296_subsys_init(void)
 {
 	int ret = 0;
 
+	pr_notice("[bq24296_init] init start with i2c DTS\n");
+
 	if (i2c_add_driver(&bq24296_driver) != 0)
-		battery_log(BAT_LOG_CRTI, "[bq24261_init] failed to register bq24261 i2c driver.\n");
+		battery_log(BAT_LOG_CRTI, "[bq24296_init] failed to register bq24261 i2c driver.\n");
 	else
-		battery_log(BAT_LOG_CRTI, "[bq24261_init] Success to register bq24261 i2c driver.\n");
+		battery_log(BAT_LOG_CRTI, "[bq24296_init] Success to register bq24261 i2c driver.\n");
 
 	/* bq24296 user space access interface */
 	ret = platform_device_register(&bq24296_user_space_device);
@@ -720,6 +736,7 @@ static int __init bq24296_subsys_init(void)
 		battery_log(BAT_LOG_CRTI, "****[bq24296_init] Unable to device register(%d)\n", ret);
 		return ret;
 	}
+
 	ret = platform_driver_register(&bq24296_user_space_driver);
 	if (ret) {
 		battery_log(BAT_LOG_CRTI, "****[bq24296_init] Unable to register driver (%d)\n", ret);
@@ -734,9 +751,9 @@ static void __exit bq24296_exit(void)
 	i2c_del_driver(&bq24296_driver);
 }
 
-/* module_init(bq24296_init); */
-/* module_exit(bq24296_exit); */
 subsys_initcall(bq24296_subsys_init);
+//module_init(bq24296_init);
+//module_exit(bq24296_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("I2C bq24296 Driver");

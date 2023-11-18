@@ -54,6 +54,12 @@
 
 #include <mt-plat/upmu_common.h>
 
+<<<<<<< Updated upstream
+=======
+#include <mach/cw2015_battery.h>
+
+//extern int g_cw2015_capacity; // Add for rn4x
+>>>>>>> Stashed changes
 
 /* ============================================================ // */
 /* define */

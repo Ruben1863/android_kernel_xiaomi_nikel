@@ -1,0 +1,5 @@
+config FG_CW2015_BATTERY_SUPPORT
+        bool "support cw2015 driver for RN4X"
+        default n
+        help
+         Devoloped by ruben1863

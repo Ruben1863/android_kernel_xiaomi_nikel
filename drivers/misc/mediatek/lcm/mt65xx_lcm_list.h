@@ -17,6 +17,7 @@
 #include <lcm_drv.h>
 //nikel
 extern LCM_DRIVER nt35532_fhd_boe_vdo_lcm_drv;
+extern LCM_DRIVER nt35596_fhd_tianma_phantom_lcm_drv;
 //end
 
 #ifdef BUILD_LK

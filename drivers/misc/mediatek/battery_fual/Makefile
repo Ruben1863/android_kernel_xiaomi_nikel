@@ -1,0 +1,1 @@
+obj-$(CONFIG_FG_CW2015_BATTERY_SUPPORT) += cw2015_battery.o
